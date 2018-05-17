@@ -2,14 +2,20 @@
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.plaf.LabelUI;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -24,9 +30,9 @@ public class GUI {
     private JPanel toolbarPanel;
     private JPanel downloadsPanel;
     private JPanel leftBar;
-    Toolbar toolbar;
-    MenuBar menuBar;
-    DownloadsList list;
+    private static Toolbar toolbar;
+    private static MenuBar menuBar;
+    private static DownloadsList list;
 
     private static JFrame addDownloadFrame;
 
@@ -38,17 +44,33 @@ public class GUI {
     public static Color TOOLBAR_COLOR = new Color(208, 223, 248);
 
     public GUI() {
-        UIManager.put("Label.font", new Font("Arial", 14, 10));
+
+        /*UIManager.put("Label.font", new Font("Arial", 14, 10));
         UIManager.put("Button.font", new Font("Arial", 14, 12));
         UIManager.put("Menu.font", new Font("Arial", 14, 12));
         UIManager.put("MenuItem.font", new Font("Arial", 14, 12));
+        UIManager.put("RadioButton.font", new Font("Arial", Font.PLAIN, 12));
+        UIManager.put("ComboBox.font", new Font("Arial", Font.PLAIN, 12));
+        UIManager.put("JPanel.background", BACKGROUND_COLOR);
+        */
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
         initiateFrame();
-        initAddDownloadFrame();
+        //initAddDownloadFrame();
     }
 
     private void initiateFrame() {
         mainFrame = new JFrame("JDM");
-        mainFrame.setIconImage(new ImageIcon("src/icon.png").getImage());
+        mainFrame.setIconImage(new ImageIcon("src/icons/icon.png").getImage());
         mainFrame.setBackground(BACKGROUND_COLOR);
         mainFrame.setMinimumSize(new Dimension(650,400));
         mainFrame.setSize(800,600);
@@ -58,10 +80,11 @@ public class GUI {
         initiateMainPanel();
     }
 
-    private static void initAddDownloadFrame() {
+    public static void initAddDownloadFrame() {
         addDownloadFrame = new JFrame();
         addDownloadFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addDownloadFrame.setBackground(BACKGROUND_COLOR);
+        addDownloadFrame.setLocationRelativeTo(mainFrame);
 
         JPanel addDownloadMainPanel = new JPanel(new BorderLayout());
         addDownloadMainPanel.setOpaque(true);
@@ -73,11 +96,24 @@ public class GUI {
         //fieldsPanel.setBackground(BACKGROUND_COLOR);
         fieldsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
+        JPanel radioPanel = new JPanel(new GridLayout(3,1,5,5));
+        radioPanel.setOpaque(true);
+        radioPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(LEFT_SIDE_BACK_COLOR, 1, true),"Start with", TitledBorder.CENTER, TitledBorder.TOP));
+
+        JPanel optionsPanel = new JPanel(new BorderLayout());
+        optionsPanel.add(radioPanel, BorderLayout.CENTER);
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+
+        JPanel buttonsPanel = new JPanel(new BorderLayout());
+        buttonsPanel.setOpaque(true);
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5,20,5,5));
+
         JPanel linkPanel = new JPanel(new BorderLayout());
         linkPanel.setOpaque(true);
         //linkPanel.setBackground(BACKGROUND_COLOR);
 
         JPanel fileNamePanel = new JPanel(new BorderLayout());
+        fileNamePanel.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
         fileNamePanel.setOpaque(true);
         //fileNamePanel.setBackground(BACKGROUND_COLOR);
 
@@ -85,24 +121,67 @@ public class GUI {
         linkIcon.setOpaque(true);
         //linkIcon.setBackground(BACKGROUND_COLOR);
         linkIcon.setBorder(BorderFactory.createEmptyBorder(2,4,2,4));
-        linkIcon.setIcon(new ImageIcon("src/link.png"));
+        linkIcon.setIcon(new ImageIcon("src/icons/link.png"));
 
         JTextField link = new JTextField();
-        //link.setBackground(BACKGROUND_COLOR);
-        link.setForeground(LEFT_SIDE_BACK_COLOR);
-        link.setFont(new Font("Arial", Font.PLAIN, 12));
+        JTextField fileName = new JTextField();
 
         JLabel fileIcon = new JLabel();
         fileIcon.setOpaque(true);
+        String clipboard;
+        try {
+            clipboard = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+            try {
+                URL test = new URL(clipboard);
+                link.setText(clipboard);
+                fileName.setText(Network.generateFileName(new URL(clipboard)));
+
+            } catch (MalformedURLException e) {
+            }
+
+        } catch (UnsupportedFlavorException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //fileIcon.setBackground(BACKGROUND_COLOR);
         fileIcon.setBorder(BorderFactory.createEmptyBorder(2,4,2,4));
-        fileIcon.setIcon(new ImageIcon("src/exe.jpg"));
+        fileIcon.setIcon(new ImageIcon("src/icons/exe.jpg"));
 
-        JTextField fileName = new JTextField();
-        //fileName.setBackground(BACKGROUND_COLOR);
-        fileName.setForeground(LEFT_SIDE_BACK_COLOR);
-        fileName.setFont(new Font("Arial", Font.PLAIN, 12));
 
+
+        ButtonGroup downloadOptions = new ButtonGroup();
+
+        JRadioButton auto = new JRadioButton("Automatically");
+        auto.setSelected(true);
+        JRadioButton manual = new JRadioButton("Manually");
+        JPanel queuesPanel = new JPanel(new BorderLayout());
+        JRadioButton queue = new JRadioButton("Queues");
+        JComboBox queues = new JComboBox(DownloadManager.getQueues().toArray());
+        queues.setEnabled(false);
+        JPanel comboPanel = new JPanel(new BorderLayout());
+        comboPanel.add(queues, BorderLayout.WEST);
+
+        queuesPanel.add(queue, BorderLayout.WEST);
+        queuesPanel.add(comboPanel, BorderLayout.CENTER);
+
+        downloadOptions.add(auto);
+        downloadOptions.add(manual);
+        downloadOptions.add(queue);
+
+        radioPanel.add(auto);
+        radioPanel.add(manual);
+        radioPanel.add(queuesPanel);
+
+        JButton ok = new JButton("OK");
+        ok.setOpaque(true);
+
+        JButton cancel = new JButton("Cancel");
+        cancel.setOpaque(true);
+
+        JPanel cancelButton = new JPanel(new BorderLayout());
+        cancelButton.add(cancel, BorderLayout.EAST);
 
         linkPanel.add(linkIcon, BorderLayout.WEST);
         linkPanel.add(link, BorderLayout.CENTER);
@@ -110,19 +189,97 @@ public class GUI {
         fileNamePanel.add(fileIcon, BorderLayout.WEST);
         fileNamePanel.add(fileName, BorderLayout.CENTER);
 
+
+
+        buttonsPanel.add(ok, BorderLayout.EAST);
+        buttonsPanel.add(cancelButton, BorderLayout.CENTER);
+
         addDownloadMainPanel.add(fieldsPanel, BorderLayout.NORTH);
+        addDownloadMainPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        addDownloadMainPanel.add(optionsPanel, BorderLayout.CENTER);
         fieldsPanel.add(linkPanel, BorderLayout.NORTH);
         fieldsPanel.add(fileNamePanel, BorderLayout.CENTER);
 
-        addDownloadFrame.setSize(400,200);
+
+
+        addDownloadFrame.setSize(500,250);
         addDownloadFrame.setTitle("New Downlaod");
+        addDownloadFrame.setResizable(false);
         addDownloadFrame.setVisible(false);
         addDownloadFrame.add(addDownloadMainPanel);
 
-    }
+        auto.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                queues.setEnabled(false);
+            }
+        });
 
-    public static Dimension sizeOfWindow(){
-        return mainFrame.getSize();
+        manual.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                queues.setEnabled(false);
+            }
+        });
+
+        queue.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                queues.setEnabled(true);
+            }
+        });
+
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addDownloadFrame.dispatchEvent(new WindowEvent(addDownloadFrame, WindowEvent.WINDOW_CLOSING));
+            }
+        });
+
+        ok.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String url = link.getText();
+                String name = fileName.getText();
+
+                try {
+                    URL url1 = new URL(url);
+                    Download download = new Download(name, url);
+                    if (name.equals("")) {
+                        JOptionPane.showMessageDialog(addDownloadMainPanel, "File name shouldn't be empty.");
+                    }
+                    else {
+                        Download.status status;
+                        if (downloadOptions.getSelection().equals(auto)) {
+                            status = Download.status.Downloading;
+                        }
+                        else {
+                            status = Download.status.Paused;
+                            if (downloadOptions.getSelection().equals(queue)) {
+                                int q = queues.getSelectedIndex();
+                                DownloadManager.getQueues().get(q).add(download);
+                            }
+                        }
+
+                        download.setState(status);
+                        download.setCreationTime(Calendar.getInstance().getTime());
+                        int size = Network.getFileSize(url1);
+                        if (size != -1) {
+                            download.setSizeInBytes(size);
+                        }
+                        else {
+                            JOptionPane.showMessageDialog(addDownloadMainPanel, "Error");
+                        }
+                        list.addDownloadToList(download);
+
+                        addDownloadFrame.dispatchEvent(new WindowEvent(addDownloadFrame, WindowEvent.WINDOW_CLOSING));
+                    }
+                }catch (MalformedURLException e1) {
+                    JOptionPane.showMessageDialog(addDownloadMainPanel, "The URL is not valid.");
+                }
+            }
+        });
+
     }
 
     private void initiateMainPanel(){
@@ -145,7 +302,7 @@ public class GUI {
         leftBar = new JPanel(new BorderLayout());
 
         JLabel image = new JLabel();
-        ImageIcon icon = new ImageIcon("src/logo.png");
+        ImageIcon icon = new ImageIcon("src/icons/logo.png");
         image.setIcon(icon);
         image.setBorder(BorderFactory.createEmptyBorder(0,10,0,20));
 
@@ -162,7 +319,7 @@ public class GUI {
         processing.setBackground(Color.BLACK);
         processing.setBorder(BorderFactory.createEmptyBorder(3,3,3,61));
         processing.setFont(new Font("Arial", Font.BOLD, 13));
-        processing.setIcon(new ImageIcon("src/processing.png"));
+        processing.setIcon(new ImageIcon("src/icons/processing.png"));
         processing.addMouseListener(new leftMenuMouseHandler());
         categoriesClicked.put(processing, true);
 
@@ -173,7 +330,7 @@ public class GUI {
         completed.setBackground(LEFT_SIDE_BACK_COLOR);
         completed.setBorder(BorderFactory.createEmptyBorder(3,3,3,65));
         completed.setFont(new Font("Arial", Font.BOLD, 13));
-        completed.setIcon(new ImageIcon("src/completed.png"));
+        completed.setIcon(new ImageIcon("src/icons/completed.png"));
         completed.addMouseListener(new leftMenuMouseHandler());
         categoriesClicked.put(completed, false);
 
@@ -184,7 +341,7 @@ public class GUI {
         queues.setBackground(LEFT_SIDE_BACK_COLOR);
         queues.setBorder(BorderFactory.createEmptyBorder(3,3,3,84));
         queues.setFont(new Font("Arial", Font.BOLD, 13));
-        queues.setIcon(new ImageIcon("src/queue.png"));
+        queues.setIcon(new ImageIcon("src/icons/queue.png"));
         queues.addMouseListener(new leftMenuMouseHandler());
         categoriesClicked.put(queues, false);
 
@@ -258,7 +415,7 @@ public class GUI {
     private void initDownloadsList() {
         list = new DownloadsList(true);
 
-        for (int i=1;i<=10;i++){
+        for (int i=1;i<=3;i++){
             Download download = new Download("Download" + i, "Link" + i);
             download.setSizeInBytes(Math.abs(new Random().nextInt(1000000000)));
             download.setDownloadedBytes(new Random().nextInt(download.getSizeInBytes()));

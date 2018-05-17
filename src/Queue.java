@@ -2,11 +2,13 @@ import java.util.*;
 
 public class Queue {
 
+    private String name;
     private Date startTime;
     private int maximumSynchronicDownloads;
     private ArrayList<Download> queue;
 
-    public Queue() {
+    public Queue(String name) {
+        this.name = name;
         startTime = Calendar.getInstance().getTime();
         maximumSynchronicDownloads = Integer.MAX_VALUE;
         queue = new ArrayList<Download>();
@@ -24,6 +26,12 @@ public class Queue {
         download.finish();
     }
 
+    public String getName() {
+        return name;
+    }
 
-
+    @Override
+    public String toString() {
+        return name;
+    }
 }

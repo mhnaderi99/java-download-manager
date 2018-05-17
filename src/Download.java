@@ -33,11 +33,8 @@ public class Download implements Serializable{
     }
 
     public Download(String name, String link, String saveTo){
+        this(name, link);
         this.saveTo = saveTo;
-        this.name = name;
-        this.link = link;
-        downloadedBytes = 0;
-        creationTime = Calendar.getInstance().getTime();
     }
 
     public String getName() {
@@ -124,7 +121,7 @@ public class Download implements Serializable{
             return bytes + "B";
         }
         else if (bytes >= 1024 && bytes < 1024*1024) {
-            return (float)(bytes/1024) + "KB";
+            return (float)(int)((float)bytes/(float)1024 * 100) / 100 + "KB";
         }
         else if (bytes >= 1024*1024 && bytes < 1024*1024*1024) {
             return  (float)(int)(((float)bytes/(float) (1024*1024))*100)/100 + "MB";

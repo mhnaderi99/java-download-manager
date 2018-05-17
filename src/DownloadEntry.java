@@ -1,13 +1,7 @@
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.plaf.SeparatorUI;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.IOException;
-import java.io.Serializable;
-
 /**
  * Created by 9631815 on 5/12/2018.
  */
@@ -48,11 +42,14 @@ public class DownloadEntry {
         Color empty = new Color(230,230,230), full = new Color(20,150,70);
 
         progressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, sizeInBytes);
+        
         progressBar.setBackground(empty);
         progressBar.setForeground(full);
+        
         progressBar.setBorderPainted(true);
         progressBar.setString(download.getDownloadedPercentage() + "%");
         progressBar.setStringPainted(true);
+        
         progressBar.setUI(new BasicProgressBarUI() {
             protected Color getSelectionBackground() { return full; }
             protected Color getSelectionForeground() { return empty; }
@@ -69,7 +66,7 @@ public class DownloadEntry {
         icon = new JLabel("");
         icon.setOpaque(true);
         icon.setBackground(GUI.BACKGROUND_COLOR);
-        icon.setIcon(new ImageIcon("src/icon.png"));
+        icon.setIcon(new ImageIcon("src/icons/icon.png"));
         iconPanel.add(icon, BorderLayout.CENTER);
 
         progress = new JLabel(progressText);
@@ -93,7 +90,7 @@ public class DownloadEntry {
         //resume.setBorderPainted(false);
         resume.setFocusable(true);
         resume.setEnabled(true);
-        resume.setIcon(new ImageIcon("src/resume.png"));
+        resume.setIcon(new ImageIcon("src/icons/resume.png"));
         resume.setToolTipText("Resume");
         resume.setBorder(BorderFactory.createEmptyBorder(0,0,0,10));
 
@@ -104,11 +101,11 @@ public class DownloadEntry {
         open.setBackground(GUI.BACKGROUND_COLOR);
         //open.setBorderPainted(false);
         open.setFocusable(false);
-        open.setIcon(new ImageIcon("src/folder.png"));
+        open.setIcon(new ImageIcon("src/icons/folder.png"));
         open.setBorder(BorderFactory.createEmptyBorder(0,6,0,8));
 
         cancel = new JLabel("");
-        cancel.setIcon(new ImageIcon("src/cross.png"));
+        cancel.setIcon(new ImageIcon("src/icons/cross.png"));
         cancel.setOpaque(true);
         cancel.setBackground(GUI.BACKGROUND_COLOR);
         //cancel.setBorderPainted(false);
@@ -117,7 +114,7 @@ public class DownloadEntry {
         speed = new JLabel(download.getSpeed());
         speed.setFont(new Font("Arial", Font.CENTER_BASELINE, 12));
         speed.setForeground(GUI.LEFT_SIDE_BACK_COLOR_PRESSED);
-        speed.setIcon(new ImageIcon("src/speed.png"));
+        speed.setIcon(new ImageIcon("src/icons/speed.png"));
 
         content = new JPanel(new GridLayout(3,1,1,1));
         details = new JPanel(new BorderLayout());
@@ -134,10 +131,13 @@ public class DownloadEntry {
 
         details.setOpaque(true);
         details.setBackground(GUI.BACKGROUND_COLOR);
+        details.add(speed, BorderLayout.WEST);
+        details.add(progress, BorderLayout.EAST);
 
         content.add(titlePanel);
 
         content.add(progressBar);
+        content.add(details);
         content.setOpaque(true);
         content.setBackground(GUI.BACKGROUND_COLOR);
         content.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
@@ -146,7 +146,7 @@ public class DownloadEntry {
         panel.setOpaque(true);
         panel.add(iconPanel, BorderLayout.WEST);
         panel.add(content, BorderLayout.CENTER);
-        //panel.add(percentPanel, BorderLayout.EAST);
+
         JSeparator separator = new JSeparator(JSeparator.HORIZONTAL);
 
         panel.add(separator, BorderLayout.SOUTH);

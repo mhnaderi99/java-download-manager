@@ -29,6 +29,16 @@ public class DownloadsList extends JList<DownloadEntry> {
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         setLayoutOrientation(JList.VERTICAL);
         setCellRenderer(renderer);
+        addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (! e.getValueIsAdjusting()) {
+                    for (DownloadEntry entry:getSelectedValuesList()) {
+
+                    }
+                }
+            }
+        });
         setBackground(GUI.BACKGROUND_COLOR);
         setVisibleRowCount(-1);
         //setFixedCellWidth(580);
@@ -41,6 +51,7 @@ public class DownloadsList extends JList<DownloadEntry> {
     public void addDownloadToList(Download download) {
         downloads.add(new DownloadEntry(download));
         model.addElement(new DownloadEntry(download));
+        setModel(model);
         //updateUI();
     }
 
@@ -56,6 +67,10 @@ public class DownloadsList extends JList<DownloadEntry> {
     public JScrollPane getList(){
         JScrollPane scrollPane = new JScrollPane(this);
         return scrollPane;
+    }
+
+    public ArrayList<DownloadEntry> getSelectedItems() {
+        return (ArrayList<DownloadEntry>) getSelectedValuesList();
     }
 
     public ArrayList<DownloadEntry> getDownloads() {

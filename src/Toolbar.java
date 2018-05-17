@@ -27,7 +27,7 @@ public class Toolbar {
             addNewDownload = new JButton("");
             addNewDownload.setName("add");
             addNewDownload.setToolTipText("Add a new download");
-            addNewDownload.setIcon(new ImageIcon("src/add.png"));
+            addNewDownload.setIcon(new ImageIcon("src/icons/add.png"));
             addNewDownload.setBorderPainted(false);
             addNewDownload.setBackground(GUI.TOOLBAR_COLOR);
             addNewDownload.setFocusable(false);
@@ -35,61 +35,62 @@ public class Toolbar {
             addNewDownload.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    GUI.initAddDownloadFrame();
                     GUI.showAddDownloadFrame();
                 }
             });
-            addNewDownload.setPressedIcon(new ImageIcon("src/pressed/add.png"));
+            addNewDownload.setPressedIcon(new ImageIcon("src/icons/pressed/add.png"));
             addNewDownload.addMouseListener(new mouseHandler());
 
 
             pauseAllDownloads = new JButton("");
             pauseAllDownloads.setName("pause");
             pauseAllDownloads.setToolTipText("Pause selected downloads");
-            pauseAllDownloads.setIcon(new ImageIcon("src/pause.png"));
+            pauseAllDownloads.setIcon(new ImageIcon("src/icons/pause.png"));
             pauseAllDownloads.setBorderPainted(false);
             pauseAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
             pauseAllDownloads.setFocusable(false);
-            pauseAllDownloads.setPressedIcon(new ImageIcon("src/pressed/pause.png"));
+            pauseAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/pause.png"));
             pauseAllDownloads.addMouseListener(new mouseHandler());
 
             resumeAllDownloads = new JButton("");
             resumeAllDownloads.setName("resume");
             resumeAllDownloads.setToolTipText("Resume selected downloads");
-            resumeAllDownloads.setIcon(new ImageIcon("src/play.png"));
+            resumeAllDownloads.setIcon(new ImageIcon("src/icons/play.png"));
             resumeAllDownloads.setBorderPainted(false);
             resumeAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
             resumeAllDownloads.setFocusable(false);
-            resumeAllDownloads.setPressedIcon(new ImageIcon("src/pressed/play.png"));
+            resumeAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/play.png"));
             resumeAllDownloads.addMouseListener(new mouseHandler());
 
             removeAllDownloads = new JButton("");
             removeAllDownloads.setName("remove");
             removeAllDownloads.setToolTipText("Remove selected downloads");
-            removeAllDownloads.setIcon(new ImageIcon("src/remove.png"));
+            removeAllDownloads.setIcon(new ImageIcon("src/icons/remove.png"));
             removeAllDownloads.setBorderPainted(false);
             removeAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
             removeAllDownloads.setFocusable(false);
-            removeAllDownloads.setPressedIcon(new ImageIcon("src/pressed/remove.png"));
+            removeAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/remove.png"));
             removeAllDownloads.addMouseListener(new mouseHandler());
 
             sortDownloads = new JButton("");
             sortDownloads.setName("sort");
             sortDownloads.setToolTipText("Sort downloads");
-            sortDownloads.setIcon(new ImageIcon("src/sort.png"));
+            sortDownloads.setIcon(new ImageIcon("src/icons/sort.png"));
             sortDownloads.setBorderPainted(false);
             sortDownloads.setBackground(GUI.TOOLBAR_COLOR);
             sortDownloads.setFocusable(false);
-            sortDownloads.setPressedIcon(new ImageIcon("src/pressed/sort.png"));
+            sortDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/sort.png"));
             sortDownloads.addMouseListener(new mouseHandler());
 
             settings = new JButton("");
             settings.setName("name");
             settings.setToolTipText("Settings");
-            settings.setIcon(new ImageIcon("src/settings.png"));
+            settings.setIcon(new ImageIcon("src/icons/settings.png"));
             settings.setBorderPainted(false);
             settings.setBackground(new Color(208, 223, 248));
             settings.setFocusable(false);
-            settings.setPressedIcon(new ImageIcon("src/pressed/settings.png"));
+            settings.setPressedIcon(new ImageIcon("src/icons/pressed/settings.png"));
             settings.addMouseListener(new mouseHandler());
         }
         else {
