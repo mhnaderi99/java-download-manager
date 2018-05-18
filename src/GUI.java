@@ -1,23 +1,18 @@
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import javax.swing.plaf.LabelUI;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by 9631815 on 5/12/2018.
@@ -32,9 +27,8 @@ public class GUI {
     private JPanel leftBar;
     private static Toolbar toolbar;
     private static MenuBar menuBar;
-    private static DownloadsList list;
+    private static DownloadsList list, completed;
 
-    private static JFrame addDownloadFrame;
 
     private HashMap<JLabel, Boolean> categoriesClicked;
 
@@ -45,14 +39,13 @@ public class GUI {
 
     public GUI() {
 
-        /*UIManager.put("Label.font", new Font("Arial", 14, 10));
-        UIManager.put("Button.font", new Font("Arial", 14, 12));
-        UIManager.put("Menu.font", new Font("Arial", 14, 12));
-        UIManager.put("MenuItem.font", new Font("Arial", 14, 12));
-        UIManager.put("RadioButton.font", new Font("Arial", Font.PLAIN, 12));
-        UIManager.put("ComboBox.font", new Font("Arial", Font.PLAIN, 12));
-        UIManager.put("JPanel.background", BACKGROUND_COLOR);
-        */
+        UIManager.put("Panel.background", BACKGROUND_COLOR);
+        UIManager.put("Panel.foreground", LEFT_SIDE_BACK_COLOR);
+        UIManager.put("Label.background", BACKGROUND_COLOR);
+        UIManager.put("Label.foreground", LEFT_SIDE_BACK_COLOR);
+        UIManager.put("RadioButton.background", BACKGROUND_COLOR);
+
+
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException e) {
@@ -80,15 +73,14 @@ public class GUI {
         initiateMainPanel();
     }
 
-    public static void initAddDownloadFrame() {
-        addDownloadFrame = new JFrame();
+    public static JFrame makeAddDownloadFrame() {
+        JFrame addDownloadFrame = new JFrame();
         addDownloadFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addDownloadFrame.setBackground(BACKGROUND_COLOR);
         addDownloadFrame.setLocationRelativeTo(mainFrame);
 
         JPanel addDownloadMainPanel = new JPanel(new BorderLayout());
         addDownloadMainPanel.setOpaque(true);
-        //addDownloadMainPanel.setBackground();
         addDownloadMainPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
         JPanel fieldsPanel = new JPanel(new BorderLayout());
@@ -140,9 +132,7 @@ public class GUI {
             }
 
         } catch (UnsupportedFlavorException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
         //fileIcon.setBackground(BACKGROUND_COLOR);
@@ -205,7 +195,6 @@ public class GUI {
         addDownloadFrame.setSize(500,250);
         addDownloadFrame.setTitle("New Downlaod");
         addDownloadFrame.setResizable(false);
-        addDownloadFrame.setVisible(false);
         addDownloadFrame.add(addDownloadMainPanel);
 
         auto.addActionListener(new ActionListener() {
@@ -250,12 +239,12 @@ public class GUI {
                     }
                     else {
                         Download.status status;
-                        if (downloadOptions.getSelection().equals(auto)) {
+                        if (auto.isSelected()) {
                             status = Download.status.Downloading;
                         }
                         else {
                             status = Download.status.Paused;
-                            if (downloadOptions.getSelection().equals(queue)) {
+                            if (queue.isSelected()) {
                                 int q = queues.getSelectedIndex();
                                 DownloadManager.getQueues().get(q).add(download);
                             }
@@ -280,6 +269,7 @@ public class GUI {
             }
         });
 
+        return addDownloadFrame;
     }
 
     private void initiateMainPanel(){
@@ -308,6 +298,7 @@ public class GUI {
 
         JToolBar options = new JToolBar();
         options.setOpaque(true);
+        options.setFloatable(false);
         options.setBorder(BorderFactory.createEmptyBorder(0,10,0,0));
         options.setBackground(LEFT_SIDE_BACK_COLOR);
         options.setBorderPainted(false);
@@ -429,6 +420,7 @@ public class GUI {
 
         JScrollPane downloads = new JScrollPane(list.getDownloadEntries(), JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         downloads.setBackground(GUI.BACKGROUND_COLOR);
+        downloads.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         downloads.setOpaque(true);
         downloadsPanel.add(downloads, BorderLayout.CENTER);
         downloadsPanel.setOpaque(true);
@@ -451,13 +443,198 @@ public class GUI {
         mainFrame.setVisible(true);
     }
 
-    public static void showAddDownloadFrame() {
-        initAddDownloadFrame();
-        addDownloadFrame.setVisible(true);
+    public static DownloadsList getList() {
+        return list;
     }
 
-    public static void hideDownloadFrame() {
-        addDownloadFrame.setVisible(false);
+    public void update() {
+        list.getDownloadEntries().setModel(list.getModel());
+        list.getDownloadEntries().repaint();
     }
 
+    public static JFrame makeAboutFrame() {
+        JFrame about = new JFrame();
+        about.setTitle("About");
+        about.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        about.setSize(300,200);
+        about.setLocationRelativeTo(mainFrame);
+        about.setIconImage(new ImageIcon("src/icons/about.png").getImage());
+        about.setResizable(false);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        JTextArea area = new JTextArea();
+        area.setBackground(BACKGROUND_COLOR);
+        area.setEditable(false);
+        area.setText("This software is developed by:" + '\n' + "Mohammadhossein Naderi 9631815" + '\n' + "Email:    mhnaderi99@gmail.com" + '\n' + "Phone:      +989383444200");
+        panel.add(area, BorderLayout.CENTER);
+        about.add(panel);
+
+        return about;
+    }
+
+    public static JFrame makeSortFrame() {
+        JFrame sort = new JFrame();
+        sort.setTitle("Sort");
+        sort.setIconImage(new ImageIcon("src/icons/sort.png").getImage());
+        sort.setResizable(false);
+        sort.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        sort.setLocationRelativeTo(mainFrame);
+        sort.setSize(400,180);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(true);
+        panel.setBorder(BorderFactory.createEmptyBorder(10,5,5,5));
+
+        Border border = BorderFactory.createEmptyBorder(3,5,3,5);
+
+        JPanel filtersPanel = new JPanel(new BorderLayout());
+        filtersPanel.setOpaque(true);
+        filtersPanel.setBorder(border);
+
+        JPanel buttonsPanel = new JPanel(new BorderLayout());
+        buttonsPanel.setOpaque(true);
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5,20,5,5));
+
+        JPanel firstFilterPanel = new JPanel(new BorderLayout());
+        firstFilterPanel.setOpaque(true);
+        firstFilterPanel.setBorder(border);
+
+        JPanel secondFilterPanel = new JPanel(new BorderLayout());
+        secondFilterPanel.setOpaque(true);
+        secondFilterPanel.setBorder(border);
+
+        String[] arr = {"By name", "By size", "By creation time", "By downloaded percentage", "By downloaded amount"};
+        JLabel filter1 = new JLabel("First filter:      ");
+        JLabel filter2 = new JLabel("Second filter:  ");
+
+
+
+        JComboBox firstFilter = new JComboBox(arr);
+        JComboBox secondFilter = new JComboBox(arr);
+        firstFilter.setSelectedIndex(0);
+        secondFilter.setSelectedIndex(1);
+
+        JPanel firstCombo = new JPanel(new BorderLayout());
+        firstCombo.setBorder(border);
+        firstCombo.setOpaque(true);
+        firstCombo.add(firstFilter, BorderLayout.CENTER);
+
+        JPanel secondCombo = new JPanel(new BorderLayout());
+        secondCombo.setBorder(border);
+        secondCombo.setOpaque(true);
+        secondCombo.add(secondFilter, BorderLayout.CENTER);
+
+        JToggleButton firstIsAscending = new JToggleButton(" Ascending ");
+        firstIsAscending.setFocusable(false);
+        firstIsAscending.setSelected(true);
+
+        JPanel firstToggle = new JPanel(new BorderLayout());
+        firstToggle.setBorder(border);
+        firstToggle.setOpaque(true);
+        firstToggle.add(firstIsAscending, BorderLayout.CENTER);
+
+        JToggleButton secondIsAscending = new JToggleButton(" Ascending ");
+        secondIsAscending.setFocusable(false);
+        secondIsAscending.setSelected(true);
+
+        JPanel secondToggle = new JPanel(new BorderLayout());
+        secondToggle.setBorder(border);
+        secondToggle.setOpaque(true);
+        secondToggle.add(secondIsAscending, BorderLayout.CENTER);
+
+        firstFilterPanel.add(filter1, BorderLayout.WEST);
+        firstFilterPanel.add(firstToggle, BorderLayout.EAST);
+        firstFilterPanel.add(firstCombo, BorderLayout.CENTER);
+
+        secondFilterPanel.add(filter2, BorderLayout.WEST);
+        secondFilterPanel.add(secondToggle, BorderLayout.EAST);
+        secondFilterPanel.add(secondCombo, BorderLayout.CENTER);
+
+        panel.add(filtersPanel, BorderLayout.NORTH);
+        filtersPanel.add(firstFilterPanel, BorderLayout.NORTH);
+        filtersPanel.add(secondFilterPanel, BorderLayout.CENTER);
+
+        JButton ok = new JButton("OK");
+        ok.setOpaque(true);
+
+        JButton cancel = new JButton("Cancel");
+        cancel.setOpaque(true);
+
+        JPanel cancelButton = new JPanel(new BorderLayout());
+        cancelButton.add(cancel, BorderLayout.EAST);
+
+        buttonsPanel.add(ok, BorderLayout.EAST);
+        buttonsPanel.add(cancelButton, BorderLayout.CENTER);
+
+        panel.add(buttonsPanel, BorderLayout.SOUTH);
+
+        sort.add(panel);
+
+        firstIsAscending.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (firstIsAscending.isSelected()) {
+                    firstIsAscending.setText(" Ascending ");
+                }
+                else {
+                    firstIsAscending.setText("Descending");
+                }
+            }
+        });
+
+        secondIsAscending.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (secondIsAscending.isSelected()) {
+                    secondIsAscending.setText(" Ascending ");
+                }
+                else {
+                    secondIsAscending.setText("Descending");
+                }
+            }
+        });
+
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sort.dispatchEvent(new WindowEvent(sort, WindowEvent.WINDOW_CLOSING));
+            }
+        });
+
+        ok.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int index1 = firstFilter.getSelectedIndex();
+                int index2 = secondFilter.getSelectedIndex();
+                boolean isFirstAscending = firstIsAscending.isSelected();
+                boolean isSecondAscending = secondIsAscending.isSelected();
+                Comparator priority1 = Download.getComparator(firstFilter.getItemAt(index1).toString());
+                Comparator priority2 = Download.getComparator(secondFilter.getItemAt(index2).toString());
+                sort.dispatchEvent(new WindowEvent(sort, WindowEvent.WINDOW_CLOSING));
+                list.sortDownloads(priority1, isFirstAscending, priority2, isSecondAscending);
+            }
+        });
+
+        return sort;
+    }
+
+    public static JFrame getMainFrame() {
+        return mainFrame;
+    }
+
+    public static Image getScaledImage(Image srcImg, int w, int h){
+        BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = resizedImg.createGraphics();
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(srcImg, 0, 0, w, h, null);
+        g2.dispose();
+
+        return resizedImg;
+    }
+
+    public static Toolbar getToolbar() {
+        return toolbar;
+    }
 }

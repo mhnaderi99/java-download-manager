@@ -12,14 +12,22 @@ public class Toolbar {
     private JButton addNewDownload;
     private JButton pauseAllDownloads;
     private JButton resumeAllDownloads;
-    private JButton removeAllDownloads;
+    private JButton cancelAllDownloads;
     private JButton sortDownloads;
+    private JButton removeAllDownloads;
     private JButton settings;
 
 
 
     public Toolbar(boolean isHorizontal) {
             initiateToolbar(isHorizontal);
+    }
+
+    public void setEnabledButtons(boolean state) {
+        pauseAllDownloads.setEnabled(state);
+        resumeAllDownloads.setEnabled(state);
+        cancelAllDownloads.setEnabled(state);
+        removeAllDownloads.setEnabled(state);
     }
 
     private void initiateButtons(boolean isHorizontal){
@@ -32,13 +40,7 @@ public class Toolbar {
             addNewDownload.setBackground(GUI.TOOLBAR_COLOR);
             addNewDownload.setFocusable(false);
             addNewDownload.setOpaque(true);
-            addNewDownload.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    GUI.initAddDownloadFrame();
-                    GUI.showAddDownloadFrame();
-                }
-            });
+            addNewDownload.addActionListener(new EventHandler());
             addNewDownload.setPressedIcon(new ImageIcon("src/icons/pressed/add.png"));
             addNewDownload.addMouseListener(new mouseHandler());
 
@@ -49,7 +51,10 @@ public class Toolbar {
             pauseAllDownloads.setIcon(new ImageIcon("src/icons/pause.png"));
             pauseAllDownloads.setBorderPainted(false);
             pauseAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
+            pauseAllDownloads.setEnabled(false);
             pauseAllDownloads.setFocusable(false);
+            pauseAllDownloads.setOpaque(true);
+            pauseAllDownloads.addActionListener(new EventHandler());
             pauseAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/pause.png"));
             pauseAllDownloads.addMouseListener(new mouseHandler());
 
@@ -59,19 +64,26 @@ public class Toolbar {
             resumeAllDownloads.setIcon(new ImageIcon("src/icons/play.png"));
             resumeAllDownloads.setBorderPainted(false);
             resumeAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
+            resumeAllDownloads.setEnabled(false);
             resumeAllDownloads.setFocusable(false);
+            resumeAllDownloads.setOpaque(true);
+            resumeAllDownloads.addActionListener(new EventHandler());
             resumeAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/play.png"));
             resumeAllDownloads.addMouseListener(new mouseHandler());
 
-            removeAllDownloads = new JButton("");
-            removeAllDownloads.setName("remove");
-            removeAllDownloads.setToolTipText("Remove selected downloads");
-            removeAllDownloads.setIcon(new ImageIcon("src/icons/remove.png"));
-            removeAllDownloads.setBorderPainted(false);
-            removeAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
-            removeAllDownloads.setFocusable(false);
-            removeAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/remove.png"));
-            removeAllDownloads.addMouseListener(new mouseHandler());
+
+            cancelAllDownloads = new JButton("");
+            cancelAllDownloads.setName("cancel");
+            cancelAllDownloads.setToolTipText("Cancel selected downloads");
+            cancelAllDownloads.setIcon(new ImageIcon("src/icons/cancel.png"));
+            cancelAllDownloads.setBorderPainted(false);
+            cancelAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
+            cancelAllDownloads.setEnabled(false);
+            cancelAllDownloads.setFocusable(false);
+            cancelAllDownloads.setOpaque(true);
+            cancelAllDownloads.addActionListener(new EventHandler());
+            cancelAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/cancel.png"));
+            cancelAllDownloads.addMouseListener(new mouseHandler());
 
             sortDownloads = new JButton("");
             sortDownloads.setName("sort");
@@ -80,11 +92,25 @@ public class Toolbar {
             sortDownloads.setBorderPainted(false);
             sortDownloads.setBackground(GUI.TOOLBAR_COLOR);
             sortDownloads.setFocusable(false);
+            sortDownloads.addActionListener(new EventHandler());
             sortDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/sort.png"));
             sortDownloads.addMouseListener(new mouseHandler());
 
+
+            removeAllDownloads = new JButton("");
+            removeAllDownloads.setName("remove");
+            removeAllDownloads.setToolTipText("Remove selected downloads");
+            removeAllDownloads.setIcon(new ImageIcon("src/icons/remove.png"));
+            removeAllDownloads.setBorderPainted(false);
+            removeAllDownloads.setBackground(GUI.TOOLBAR_COLOR);
+            removeAllDownloads.setEnabled(false);
+            removeAllDownloads.setFocusable(false);
+            removeAllDownloads.addActionListener(new EventHandler());
+            removeAllDownloads.setPressedIcon(new ImageIcon("src/icons/pressed/remove.png"));
+            removeAllDownloads.addMouseListener(new mouseHandler());
+
             settings = new JButton("");
-            settings.setName("name");
+            settings.setName("settings");
             settings.setToolTipText("Settings");
             settings.setIcon(new ImageIcon("src/icons/settings.png"));
             settings.setBorderPainted(false);
@@ -145,10 +171,13 @@ public class Toolbar {
 
             toolBar.add(pauseAllDownloads);
             toolBar.add(resumeAllDownloads);
-            toolBar.add(removeAllDownloads);
+            toolBar.add(cancelAllDownloads);
             toolBar.add(new JSeparator(JSeparator.VERTICAL));
 
             toolBar.add(sortDownloads);
+            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+
+            toolBar.add(removeAllDownloads);
             toolBar.add(new JSeparator(JSeparator.VERTICAL));
 
             toolBar.add(settings);

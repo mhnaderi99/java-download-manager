@@ -1,7 +1,14 @@
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+
 /**
  * Created by 9631815 on 5/12/2018.
  */
@@ -66,7 +73,9 @@ public class DownloadEntry {
         icon = new JLabel("");
         icon.setOpaque(true);
         icon.setBackground(GUI.BACKGROUND_COLOR);
-        icon.setIcon(new ImageIcon("src/icons/icon.png"));
+        //Icon ico = javax.swing.filechooser.FileSystemView.getFileSystemView().getSystemIcon(new File("src/icons/files/file." + download.fileFormat()));
+        //icon.setIcon(ico);
+        icon.setIcon(new ImageIcon(GUI.getScaledImage(new ImageIcon("src/icons/icon.png").getImage(),30,30)));
         iconPanel.add(icon, BorderLayout.CENTER);
 
         progress = new JLabel(progressText);
@@ -112,6 +121,12 @@ public class DownloadEntry {
         cancel.setBorder(BorderFactory.createEmptyBorder(0,8,0,0));
 
         speed = new JLabel(download.getSpeed());
+        if (download.getState().equals(Download.status.Paused)) {
+            speed.setText("paused");
+        }
+        if (download.getState().equals(Download.status.Cancelled)) {
+            speed.setText("cancelled");
+        }
         speed.setFont(new Font("Arial", Font.CENTER_BASELINE, 12));
         speed.setForeground(GUI.LEFT_SIDE_BACK_COLOR_PRESSED);
         speed.setIcon(new ImageIcon("src/icons/speed.png"));
@@ -156,64 +171,110 @@ public class DownloadEntry {
         return panel;
     }
 
-    public JPanel gettPanel() {
-        return panel;
-    }
-
-    public JPanel getContent() {
-        return content;
-    }
-
-    public JPanel getDetails() {
-        return details;
-    }
-
-    public JPanel getButtons() {
-        return buttons;
-    }
-
-    public JPanel getIconPanel() {
-        return iconPanel;
-    }
-
-    public JPanel getTitlePanel() {
-        return titlePanel;
-    }
-
-    public JLabel getTitle() {
-        return title;
-    }
-
-    public JLabel getIcon() {
-        return icon;
-    }
-
-    public JLabel getProgress() {
-        return progress;
-    }
-
-    public JLabel getSpeed() {
-        return speed;
-    }
-
-    public JProgressBar getProgressBar() {
-        return progressBar;
-    }
-
-    public JLabel getResume() {
-        return resume;
-    }
-
-    public JLabel getOpen() {
-        return open;
-    }
-
-    public JLabel getCancel() {
-        return cancel;
-    }
-
     @Override
     public String toString() {
         return download.getName() + ": " + download.getProgress();
     }
+
+    public JFrame makeDetailsFrame() {
+
+        JFrame details = new JFrame();
+        details.setTitle(download.getName());
+        details.setLocationRelativeTo(GUI.getMainFrame());
+        details.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        details.setIconImage(new ImageIcon("src/icons/details.png").getImage());
+        details.setSize(300,300);
+        details.setResizable(false);
+
+        Border border = BorderFactory.createEmptyBorder(5,5,5,5);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(border);
+
+        JPanel mainPanel = new JPanel(new GridLayout(7,1,1,5));
+        mainPanel.setBorder(BorderFactory.createTitledBorder("Information"));
+
+        JPanel filePanel = new JPanel(new BorderLayout());
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        JPanel sizePanel = new JPanel(new BorderLayout());
+        JPanel saveToPanel = new JPanel(new BorderLayout());
+        JPanel createdPaneel = new JPanel(new BorderLayout());
+        JPanel finishedPanel = new JPanel(new BorderLayout());
+        JPanel urlPanel = new JPanel(new BorderLayout());
+
+        JLabel file_ = new JLabel("File:             ");
+        JLabel status_ = new JLabel("Status:          ");
+        JLabel size_ = new JLabel("Size:             ");
+        JLabel saveTo_ = new JLabel("Save to:         ");
+        JLabel created_ = new JLabel("Created:         ");
+        JLabel finished_ = new JLabel("Finished:        ");
+        JLabel url_ = new JLabel("URL:              ");
+
+        JLabel file = new JLabel(download.getName());
+        JLabel status = new JLabel(download.getState().toString() + " (" + download.getDownloadedPercentage() + "%)");
+        JLabel size = new JLabel(Download.makePrefix(download.getSizeInBytes()) + " (" + download.getSizeInBytes() +" Bytes)");
+        JLabel saveTo = new JLabel(download.getSaveTo());
+        JLabel created = new JLabel(download.getCreationTime().toString());
+        JLabel finished = new JLabel("n/a");
+        if (download.getState().equals(Download.status.Finished)) {
+            finished = new JLabel(download.getFinishTime().toString());
+        }
+        JLabel url = new JLabel(download.getLink());
+
+        JButton copy = new JButton("Copy");
+        copy.setOpaque(true);
+        copy.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection selection = new StringSelection(download.getLink());
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, selection);
+            }
+        });
+
+
+        filePanel.setBorder(border);
+        filePanel.add(file_, BorderLayout.WEST);
+        filePanel.add(file, BorderLayout.CENTER);
+
+        statusPanel.setBorder(border);
+        statusPanel.add(status_, BorderLayout.WEST);
+        statusPanel.add(status, BorderLayout.CENTER);
+
+        sizePanel.setBorder(border);
+        sizePanel.add(size_, BorderLayout.WEST);
+        sizePanel.add(size, BorderLayout.CENTER);
+
+        saveToPanel.setBorder(border);
+        saveToPanel.add(saveTo_, BorderLayout.WEST);
+        saveToPanel.add(saveTo, BorderLayout.CENTER);
+
+        createdPaneel.setBorder(border);
+        createdPaneel.add(created_, BorderLayout.WEST);
+        createdPaneel.add(created, BorderLayout.CENTER);
+
+        finishedPanel.setBorder(border);
+        finishedPanel.add(finished_, BorderLayout.WEST);
+        finishedPanel.add(finished, BorderLayout.CENTER);
+
+        urlPanel.setBorder(border);
+        urlPanel.add(url_, BorderLayout.WEST);
+        urlPanel.add(url, BorderLayout.CENTER);
+        urlPanel.add(copy, BorderLayout.EAST);
+
+
+        mainPanel.add(filePanel);
+        mainPanel.add(statusPanel);
+        mainPanel.add(sizePanel);
+        mainPanel.add(saveToPanel);
+        mainPanel.add(createdPaneel);
+        mainPanel.add(finishedPanel);
+        mainPanel.add(urlPanel);
+
+        panel.add(mainPanel, BorderLayout.CENTER);
+        details.add(panel);
+
+        return details;
+    }
+
 }
