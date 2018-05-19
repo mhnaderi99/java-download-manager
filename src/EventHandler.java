@@ -49,6 +49,9 @@ public class EventHandler implements ActionListener {
         if (key.equals("remove")) {
             DownloadManager.removeDownloads();
         }
+        if (key.equals("settings")) {
+            Settings.makeSettingsFrame().setVisible(true);
+        }
         if (key.equals("exit")) {
             System.exit(0);
         }

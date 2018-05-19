@@ -1,22 +1,23 @@
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class DownloadManager {
 
     private static GUI gui;
+    private static Settings settings;
     private static DownloadsList completed, proccessing;
     private static ArrayList<Queue> queues;
+    public static final int INF = Integer.MAX_VALUE;
 
     public DownloadManager() {
         queues = new ArrayList<Queue>();
-        queues.add(new Queue("My queue1"));
-        queues.add(new Queue("My queue2"));
-        queues.add(new Queue("My queue3"));
-        gui = new GUI();
-        gui.showMainFrame();
+        queues.add(new Queue("Default"));
+        settings = new Settings();
+        setLookAndFeel(Settings.getLookAndFeel());
         completed = new DownloadsList(true);
-        proccessing = GUI.getList();
+        proccessing = new DownloadsList(false);
+        gui = new GUI(false);
+        gui.showGUI();
     }
 
     public static DownloadsList getProccessing() {
@@ -25,6 +26,10 @@ public class DownloadManager {
 
     public static DownloadsList getCompleted() {
         return completed;
+    }
+
+    public static Settings getSettings() {
+        return settings;
     }
 
     public static ArrayList<Queue> getQueues() {
@@ -40,23 +45,35 @@ public class DownloadManager {
     }
 
     public static void pauseDownloads() {
-        int[] indices = GUI.getList().getDownloadEntries().getSelectedIndices();
+        int[] indices = proccessing.getDownloadEntries().getSelectedIndices();
         for (int index : indices) {
-            GUI.getList().getDownloadEntries().getModel().getElementAt(index).getDownload().setState(Download.status.Paused);
+            proccessing.getDownloadEntries().getModel().getElementAt(index).getDownload().setState(Download.status.Paused);
         }
         updateUI();
     }
 
     public static void resumeDownloads() {
-        int[] indices = GUI.getList().getDownloadEntries().getSelectedIndices();
-        for (int index : indices) {
-            GUI.getList().getDownloadEntries().getModel().getElementAt(index).getDownload().setState(Download.status.Downloading);
+        boolean flag = false;
+        int[] indices = proccessing.getDownloadEntries().getSelectedIndices();
+        if (Settings.isSynchronicDownloadsLimited()) {
+            if (getInProgressDownloads() + indices.length > Settings.getMaximumSynchronicDownloads()) {
+                flag = true;
+            }
         }
-        updateUI();
+
+        if (flag) {
+            JOptionPane.showMessageDialog(GUI.getFrame(),"JDM can't resume.(Maximum synchronic download limit exceeded)", "Error", 0);
+        }
+        else {
+            for (int index : indices) {
+                proccessing.getDownloadEntries().getModel().getElementAt(index).getDownload().setState(Download.status.Downloading);
+            }
+            updateUI();
+        }
     }
 
     public static void removeDownloads() {
-        int value = JOptionPane.showConfirmDialog(GUI.getMainFrame(), "Are you sure you want to delete?", "Warning", 0,0);
+        int value = JOptionPane.showConfirmDialog(GUI.getFrame(), "Are you sure you want to delete?", "Warning", 0,0);
         if (value != 0){
             return;
         }
@@ -73,9 +90,9 @@ public class DownloadManager {
     }
 
     public static void cancelDownloads() {
-        int[] indices = GUI.getList().getDownloadEntries().getSelectedIndices();
+        int[] indices = proccessing.getDownloadEntries().getSelectedIndices();
         for (int index : indices) {
-            GUI.getList().getDownloadEntries().getModel().getElementAt(index).getDownload().setState(Download.status.Cancelled);
+            proccessing.getDownloadEntries().getModel().getElementAt(index).getDownload().setState(Download.status.Cancelled);
         }
         updateUI();
     }
@@ -87,11 +104,28 @@ public class DownloadManager {
         updateUI();
     }
 
-    public static void resumeAllDownloads() {
-        for (DownloadEntry entry: proccessing.getDownloads()) {
-            entry.getDownload().setState(Download.status.Downloading);
+    public static void pauseSomeDownloads(int number) {
+        int l = proccessing.getDownloads().size();
+        for (int i = l - 1; i >= l - number; i--) {
+            proccessing.getDownloads().get(i).getDownload().setState(Download.status.Paused);
         }
         updateUI();
+    }
+
+    public static void resumeAllDownloads() {
+        boolean flag = false;
+        if (proccessing.getDownloads().size() > Settings.getMaximumSynchronicDownloads() && Settings.isSynchronicDownloadsLimited()) {
+            flag = true;
+        }
+        if (flag) {
+            JOptionPane.showMessageDialog(GUI.getFrame(),"JDM can't resume.(Maximum synchronic download limit exceeded)", "Error", 0);
+        }
+        else {
+            for (DownloadEntry entry : proccessing.getDownloads()) {
+                entry.getDownload().setState(Download.status.Downloading);
+            }
+            updateUI();
+        }
     }
 
     public static void cancelAllDownloads() {
@@ -99,5 +133,21 @@ public class DownloadManager {
             entry.getDownload().setState(Download.status.Cancelled);
         }
         updateUI();
+    }
+
+    public static int getInProgressDownloads() {
+        int count = 0;
+        for (DownloadEntry entry: proccessing.getDownloads()) {
+            if (entry.getDownload().getState().equals(Download.status.Downloading)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static void setLookAndFeel(String lookAndFeel) {
+        try {
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (Exception e){}
     }
 }

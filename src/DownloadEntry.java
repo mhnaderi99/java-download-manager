@@ -7,7 +7,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 /**
  * Created by 9631815 on 5/12/2018.
@@ -46,21 +45,21 @@ public class DownloadEntry {
         int downloadedBytes = download.getDownloadedBytes();
         String progressText = download.getProgress();
 
-        Color empty = new Color(230,230,230), full = new Color(20,150,70);
+        //Color empty = new Color(230,230,230), full = new Color(20,150,70);
 
         progressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, sizeInBytes);
         
-        progressBar.setBackground(empty);
-        progressBar.setForeground(full);
+        //progressBar.setBackground(empty);
+        //progressBar.setForeground(full);
         
         progressBar.setBorderPainted(true);
         progressBar.setString(download.getDownloadedPercentage() + "%");
         progressBar.setStringPainted(true);
         
-        progressBar.setUI(new BasicProgressBarUI() {
-            protected Color getSelectionBackground() { return full; }
-            protected Color getSelectionForeground() { return empty; }
-        });
+//        progressBar.setUI(new BasicProgressBarUI() {
+//            protected Color getSelectionBackground() { return full; }
+//            protected Color getSelectionForeground() { return empty; }
+//        });
 
         progressBar.setBorder(BorderFactory.createLineBorder(GUI.TOOLBAR_COLOR, 1));
         progressBar.setValue(downloadedBytes);
@@ -180,10 +179,9 @@ public class DownloadEntry {
 
         JFrame details = new JFrame();
         details.setTitle(download.getName());
-        details.setLocationRelativeTo(GUI.getMainFrame());
         details.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         details.setIconImage(new ImageIcon("src/icons/details.png").getImage());
-        details.setSize(300,300);
+        details.setSize(500,300);
         details.setResizable(false);
 
         Border border = BorderFactory.createEmptyBorder(5,5,5,5);

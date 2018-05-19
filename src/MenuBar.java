@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 
 /**
@@ -6,7 +7,7 @@ import java.awt.event.KeyEvent;
  */
 public class MenuBar {
 
-    private JMenuBar menuBar;
+    private static JMenuBar menuBar;
     JMenu download;
     JMenu help;
     private JMenuItem addNewDownload;
@@ -17,7 +18,7 @@ public class MenuBar {
     private JMenuItem exit;
     private JMenuItem about;
 
-    public MenuBar(){
+    public MenuBar() {
         initiateMenuBar();
     }
 
@@ -31,7 +32,7 @@ public class MenuBar {
         EventHandler handler = new EventHandler();
 
         addNewDownload = new JMenuItem("Add", KeyEvent.VK_A);
-        addNewDownload.setAccelerator(KeyStroke.getKeyStroke("control D"));
+        addNewDownload.setAccelerator(KeyStroke.getKeyStroke("control N"));
         addNewDownload.setName("add");
         addNewDownload.addActionListener(handler);
 
@@ -84,6 +85,12 @@ public class MenuBar {
         menuBar = new JMenuBar();
         menuBar.add(download);
         menuBar.add(help);
+    }
+
+    public static void setLookAndFeel(String lookAndFeel) {
+        menuBar.invalidate();
+        menuBar.validate();
+        menuBar.repaint();
     }
 
     public JMenuBar getMenuBar() {

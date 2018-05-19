@@ -1,3 +1,6 @@
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -9,7 +12,7 @@ public class Download implements Serializable{
 
 
     public enum status {
-        Downloading, Paused, Cancelled, Finished;
+        Downloading, Paused, Cancelled, Finished
     }
 
     private String name;
@@ -24,17 +27,11 @@ public class Download implements Serializable{
 
 
     public Download(String name, String link){
-        saveTo = "Desktop";
+        saveTo = Settings.getSaveToPath();
         this.name = name;
         this.link = link;
-        downloadedBytes = 0;
         state = status.Downloading;
         creationTime = Calendar.getInstance().getTime();
-    }
-
-    public Download(String name, String link, String saveTo){
-        this(name, link);
-        this.saveTo = saveTo;
     }
 
     public static Comparator<Download> downloadNameComparator = new Comparator<Download>() {
@@ -245,5 +242,19 @@ public class Download implements Serializable{
 
     public void finish() {
         state = status.Finished;
+    }
+
+    public void openFile() {
+        try {
+            Desktop.getDesktop().open(new File(getSaveTo() + getName()));
+        } catch (IOException e1) {
+        }
+    }
+
+    public void openFolder() {
+        try {
+            Desktop.getDesktop().open(new File(getSaveTo()));
+        } catch (IOException e1) {
+        }
     }
 }

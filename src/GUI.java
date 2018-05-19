@@ -19,100 +19,100 @@ import java.util.*;
  */
 public class GUI {
 
-
-    private static JFrame mainFrame;
-    private JPanel mainPanel;
-    private JPanel toolbarPanel;
-    private JPanel downloadsPanel;
-    private JPanel leftBar;
+    private static JFrame frame;
     private static Toolbar toolbar;
-    private static MenuBar menuBar;
-    private static DownloadsList list, completed;
+    private static DownloadsList list;
 
 
     private HashMap<JLabel, Boolean> categoriesClicked;
 
-    public static Color LEFT_SIDE_BACK_COLOR = new Color(50,54,63);
-    public static Color LEFT_SIDE_BACK_COLOR_PRESSED = new Color(100,104,113);
-    public static Color BACKGROUND_COLOR = new Color(231,239,251);
+    public static Color LEFT_SIDE_BACK_COLOR = new Color(50, 54, 63);
+    public static Color LEFT_SIDE_BACK_COLOR_PRESSED = new Color(100, 104, 113);
+    public static Color BACKGROUND_COLOR = new Color(231, 239, 251);
     public static Color TOOLBAR_COLOR = new Color(208, 223, 248);
 
-    public GUI() {
-
-        UIManager.put("Panel.background", BACKGROUND_COLOR);
-        UIManager.put("Panel.foreground", LEFT_SIDE_BACK_COLOR);
-        UIManager.put("Label.background", BACKGROUND_COLOR);
-        UIManager.put("Label.foreground", LEFT_SIDE_BACK_COLOR);
-        UIManager.put("RadioButton.background", BACKGROUND_COLOR);
-
-
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-        initiateFrame();
-        //initAddDownloadFrame();
+    public GUI(boolean isCompleted) {
+        list = new DownloadsList(false);
+        initiateFrame(isCompleted);
     }
 
-    private void initiateFrame() {
-        mainFrame = new JFrame("JDM");
-        mainFrame.setIconImage(new ImageIcon("src/icons/icon.png").getImage());
-        mainFrame.setBackground(BACKGROUND_COLOR);
-        mainFrame.setMinimumSize(new Dimension(650,400));
-        mainFrame.setSize(800,600);
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        menuBar = new MenuBar();
-        mainFrame.setJMenuBar(menuBar.getMenuBar());
-        initiateMainPanel();
+    private void initiateFrame(boolean isCompleted) {
+        frame = null;
+        frame = new JFrame("JDM");
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (SystemTray.isSupported()) {
+                    SystemTray tray = SystemTray.getSystemTray();
+                    TrayIcon trayIcon = new TrayIcon(new ImageIcon("src/icons/icon.png").getImage(), "JDM");
+                    trayIcon.setImageAutoSize(true);
+                    trayIcon.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mousePressed(MouseEvent e) {
+                            super.mousePressed(e);
+                            tray.remove(trayIcon);
+                            frame.setVisible(true);
+                        }
+                    });
+                    try {
+                        tray.add(trayIcon);
+
+                    } catch (AWTException e1) {
+
+                    }
+                }
+            }
+        });
+        frame.setIconImage(new ImageIcon("src/icons/icon.png").getImage());
+        frame.setBackground(BACKGROUND_COLOR);
+        frame.setMinimumSize(new Dimension(650, 400));
+        frame.setSize(800, 600);
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setJMenuBar(new MenuBar().getMenuBar());
+        frame.add(makeMainPanel(isCompleted));
     }
 
     public static JFrame makeAddDownloadFrame() {
         JFrame addDownloadFrame = new JFrame();
+        addDownloadFrame.setIconImage(new ImageIcon("src/icons/add.png").getImage());
         addDownloadFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         addDownloadFrame.setBackground(BACKGROUND_COLOR);
-        addDownloadFrame.setLocationRelativeTo(mainFrame);
+        addDownloadFrame.setLocationRelativeTo(getFrame());
 
         JPanel addDownloadMainPanel = new JPanel(new BorderLayout());
         addDownloadMainPanel.setOpaque(true);
-        addDownloadMainPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        addDownloadMainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JPanel fieldsPanel = new JPanel(new BorderLayout());
         fieldsPanel.setOpaque(true);
         //fieldsPanel.setBackground(BACKGROUND_COLOR);
-        fieldsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        fieldsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        JPanel radioPanel = new JPanel(new GridLayout(3,1,5,5));
+        JPanel radioPanel = new JPanel(new GridLayout(3, 1, 5, 5));
         radioPanel.setOpaque(true);
-        radioPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(LEFT_SIDE_BACK_COLOR, 1, true),"Start with", TitledBorder.CENTER, TitledBorder.TOP));
+        radioPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(LEFT_SIDE_BACK_COLOR, 1, true), "Start with", TitledBorder.CENTER, TitledBorder.TOP));
 
         JPanel optionsPanel = new JPanel(new BorderLayout());
         optionsPanel.add(radioPanel, BorderLayout.CENTER);
-        optionsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JPanel buttonsPanel = new JPanel(new BorderLayout());
         buttonsPanel.setOpaque(true);
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5,20,5,5));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 20, 5, 5));
 
         JPanel linkPanel = new JPanel(new BorderLayout());
         linkPanel.setOpaque(true);
         //linkPanel.setBackground(BACKGROUND_COLOR);
 
         JPanel fileNamePanel = new JPanel(new BorderLayout());
-        fileNamePanel.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+        fileNamePanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
         fileNamePanel.setOpaque(true);
         //fileNamePanel.setBackground(BACKGROUND_COLOR);
 
         JLabel linkIcon = new JLabel();
         linkIcon.setOpaque(true);
         //linkIcon.setBackground(BACKGROUND_COLOR);
-        linkIcon.setBorder(BorderFactory.createEmptyBorder(2,4,2,4));
+        linkIcon.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
         linkIcon.setIcon(new ImageIcon("src/icons/link.png"));
 
         JTextField link = new JTextField();
@@ -121,24 +121,23 @@ public class GUI {
         JLabel fileIcon = new JLabel();
         fileIcon.setOpaque(true);
         String clipboard;
-        try {
-            clipboard = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-            try {
-                URL test = new URL(clipboard);
-                link.setText(clipboard);
-                fileName.setText(Network.generateFileName(new URL(clipboard)));
-
-            } catch (MalformedURLException e) {
-            }
-
-        } catch (UnsupportedFlavorException e) {
-        } catch (IOException e) {
-        }
+//        try {
+//            clipboard = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+//            try {
+//                URL test = new URL(clipboard);
+//                link.setText(clipboard);
+//                fileName.setText(Network.generateFileName(new URL(clipboard)));
+//
+//            } catch (MalformedURLException e) {
+//            }
+//
+//        } catch (UnsupportedFlavorException e) {
+//        } catch (IOException e) {
+//        }
 
         //fileIcon.setBackground(BACKGROUND_COLOR);
-        fileIcon.setBorder(BorderFactory.createEmptyBorder(2,4,2,4));
+        fileIcon.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
         fileIcon.setIcon(new ImageIcon("src/icons/exe.jpg"));
-
 
 
         ButtonGroup downloadOptions = new ButtonGroup();
@@ -149,6 +148,7 @@ public class GUI {
         JPanel queuesPanel = new JPanel(new BorderLayout());
         JRadioButton queue = new JRadioButton("Queues");
         JComboBox queues = new JComboBox(DownloadManager.getQueues().toArray());
+        queues.setPrototypeDisplayValue("...............");
         queues.setEnabled(false);
         JPanel comboPanel = new JPanel(new BorderLayout());
         comboPanel.add(queues, BorderLayout.WEST);
@@ -180,7 +180,6 @@ public class GUI {
         fileNamePanel.add(fileName, BorderLayout.CENTER);
 
 
-
         buttonsPanel.add(ok, BorderLayout.EAST);
         buttonsPanel.add(cancelButton, BorderLayout.CENTER);
 
@@ -191,8 +190,7 @@ public class GUI {
         fieldsPanel.add(fileNamePanel, BorderLayout.CENTER);
 
 
-
-        addDownloadFrame.setSize(500,250);
+        addDownloadFrame.setSize(500, 250);
         addDownloadFrame.setTitle("New Downlaod");
         addDownloadFrame.setResizable(false);
         addDownloadFrame.add(addDownloadMainPanel);
@@ -231,84 +229,87 @@ public class GUI {
                 String url = link.getText();
                 String name = fileName.getText();
 
-                try {
-                    URL url1 = new URL(url);
+                //try {
+                    //URL url1 = new URL(url);
                     Download download = new Download(name, url);
                     if (name.equals("")) {
                         JOptionPane.showMessageDialog(addDownloadMainPanel, "File name shouldn't be empty.");
-                    }
-                    else {
+                    } else {
                         Download.status status;
                         if (auto.isSelected()) {
                             status = Download.status.Downloading;
-                        }
-                        else {
+                        } else {
                             status = Download.status.Paused;
                             if (queue.isSelected()) {
                                 int q = queues.getSelectedIndex();
                                 DownloadManager.getQueues().get(q).add(download);
                             }
                         }
-
-                        download.setState(status);
-                        download.setCreationTime(Calendar.getInstance().getTime());
-                        int size = Network.getFileSize(url1);
-                        if (size != -1) {
-                            download.setSizeInBytes(size);
+                        if (Settings.isSynchronicDownloadsLimited() && DownloadManager.getInProgressDownloads() >= Settings.getMaximumSynchronicDownloads() && status.equals(Download.status.Downloading)) {
+                            download.setState(Download.status.Paused);
+                            JOptionPane.showMessageDialog(frame, "Download status was automatically set to paused, due to maximum synchronic downloads limit.", "Message",1);
                         }
                         else {
-                            JOptionPane.showMessageDialog(addDownloadMainPanel, "Error");
+                            download.setState(status);
                         }
-                        list.addDownloadToList(download);
+                        download.setCreationTime(Calendar.getInstance().getTime());
+                        int size = new Random().nextInt(1000000000);
+                        int downloaded = new Random().nextInt(size);
+                        //int size = Network.getFileSize(url1);
+                        //if (size != -1) {
+                            download.setSizeInBytes(size);
+                            download.setDownloadedBytes(downloaded);
+                        //} else {
+                            //JOptionPane.showMessageDialog(addDownloadMainPanel, "Error");
+                        //}
+
+                        DownloadManager.getProccessing().addDownloadToList(download);
 
                         addDownloadFrame.dispatchEvent(new WindowEvent(addDownloadFrame, WindowEvent.WINDOW_CLOSING));
                     }
-                }catch (MalformedURLException e1) {
-                    JOptionPane.showMessageDialog(addDownloadMainPanel, "The URL is not valid.");
-                }
+                //} catch (MalformedURLException e1) {
+                  //  JOptionPane.showMessageDialog(addDownloadMainPanel, "The URL is not valid.");
+                //}
             }
         });
 
         return addDownloadFrame;
     }
 
-    private void initiateMainPanel(){
-        mainPanel = new JPanel(new BorderLayout());
+    private JPanel makeMainPanel(boolean isCompleted) {
+        JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(true);
-        mainPanel.setBackground(GUI.BACKGROUND_COLOR);
-        initToolbarPanel();
-        initDownloadsList();
-        initLeftBar();
-        mainPanel.add(leftBar, BorderLayout.WEST);
-        //mainPanel.add(toolbarPanel, BorderLayout.NORTH);
-        mainPanel.add(downloadsPanel, BorderLayout.CENTER);
-        //mainPanel.add(toolbarPanel, BorderLayout.NORTH);
-        mainFrame.add(mainPanel);
+        mainPanel.add(makeLeftBar(), BorderLayout.WEST);
+        makeDownloadsListPanel(isCompleted);
+        mainPanel.add(makeDownloadsListPanel(isCompleted), BorderLayout.CENTER);
+        return mainPanel;
     }
 
-    private void initLeftBar() {
+    private JPanel makeLeftBar() {
         categoriesClicked = new HashMap<JLabel, Boolean>();
 
-        leftBar = new JPanel(new BorderLayout());
+        JPanel leftBar = new JPanel(new BorderLayout());
 
         JLabel image = new JLabel();
         ImageIcon icon = new ImageIcon("src/icons/logo.png");
         image.setIcon(icon);
-        image.setBorder(BorderFactory.createEmptyBorder(0,10,0,20));
+        image.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 20));
 
         JToolBar options = new JToolBar();
         options.setOpaque(true);
         options.setFloatable(false);
-        options.setBorder(BorderFactory.createEmptyBorder(0,10,0,0));
+        options.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         options.setBackground(LEFT_SIDE_BACK_COLOR);
         options.setBorderPainted(false);
         options.setOrientation(JToolBar.VERTICAL);
 
         JLabel processing = new JLabel("Processing");
+        processing.setName("proccessing");
         processing.setOpaque(true);
+        processing.setToolTipText("Downloads in proccess");
         processing.setForeground(BACKGROUND_COLOR);
         processing.setBackground(Color.BLACK);
-        processing.setBorder(BorderFactory.createEmptyBorder(3,3,3,61));
+        processing.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 61));
         processing.setFont(new Font("Arial", Font.BOLD, 13));
         processing.setIcon(new ImageIcon("src/icons/processing.png"));
         processing.addMouseListener(new leftMenuMouseHandler());
@@ -316,21 +317,24 @@ public class GUI {
 
 
         JLabel completed = new JLabel("Completed");
+        completed.setName("completed");
         completed.setOpaque(true);
+        completed.setToolTipText("Completed downloads");
         completed.setForeground(BACKGROUND_COLOR);
         completed.setBackground(LEFT_SIDE_BACK_COLOR);
-        completed.setBorder(BorderFactory.createEmptyBorder(3,3,3,65));
+        completed.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 65));
         completed.setFont(new Font("Arial", Font.BOLD, 13));
         completed.setIcon(new ImageIcon("src/icons/completed.png"));
         completed.addMouseListener(new leftMenuMouseHandler());
         categoriesClicked.put(completed, false);
 
-
-        JLabel queues = new JLabel("Queues");
+        JLabel queues = new JLabel("Default");
+        queues.setName("queues");
         queues.setOpaque(true);
+        queues.setToolTipText("Downloads in queue");
         queues.setForeground(BACKGROUND_COLOR);
         queues.setBackground(LEFT_SIDE_BACK_COLOR);
-        queues.setBorder(BorderFactory.createEmptyBorder(3,3,3,84));
+        queues.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 84));
         queues.setFont(new Font("Arial", Font.BOLD, 13));
         queues.setIcon(new ImageIcon("src/icons/queue.png"));
         queues.addMouseListener(new leftMenuMouseHandler());
@@ -340,13 +344,11 @@ public class GUI {
         options.add(completed);
         options.add(queues);
 
-
-        //leftBar.setBorder(BorderFactory.createEmptyBorder(0,20,20,20));
         leftBar.setBackground(LEFT_SIDE_BACK_COLOR);
         leftBar.add(image, BorderLayout.NORTH);
         leftBar.add(options, BorderLayout.WEST);
 
-        //leftBar.setPreferredSize(new Dimension(150,0));
+        return leftBar;
     }
 
     private class leftMenuMouseHandler implements MouseListener {
@@ -354,14 +356,24 @@ public class GUI {
         @Override
         public void mouseClicked(MouseEvent e) {
             JLabel label = (JLabel) e.getSource();
-            for (JLabel jLabel: categoriesClicked.keySet()) {
-                if (categoriesClicked.get(jLabel) && jLabel!=label) {
+            for (JLabel jLabel : categoriesClicked.keySet()) {
+                if (categoriesClicked.get(jLabel) && jLabel != label) {
                     jLabel.setBackground(LEFT_SIDE_BACK_COLOR);
                     categoriesClicked.put(jLabel, false);
                 }
             }
             categoriesClicked.put(label, true);
             label.setBackground(Color.BLACK);
+
+            if (((JLabel) e.getSource()).getName().equals("proccessing")) {
+
+            }
+            if (((JLabel) e.getSource()).getName().equals("completed")) {
+
+            }
+            if (((JLabel) e.getSource()).getName().equals("queues")) {
+            }
+
         }
 
         @Override
@@ -377,7 +389,7 @@ public class GUI {
         @Override
         public void mouseEntered(MouseEvent e) {
             JLabel label = (JLabel) e.getSource();
-            if (! categoriesClicked.get(label)) {
+            if (!categoriesClicked.get(label)) {
                 label.setBackground(LEFT_SIDE_BACK_COLOR_PRESSED);
             }
         }
@@ -385,47 +397,44 @@ public class GUI {
         @Override
         public void mouseExited(MouseEvent e) {
             JLabel label = (JLabel) e.getSource();
-            if (! categoriesClicked.get(label)) {
+            if (!categoriesClicked.get(label)) {
                 label.setBackground(LEFT_SIDE_BACK_COLOR);
             }
         }
     }
 
-    private void initToolbarPanel() {
-        toolbarPanel = new JPanel(new BorderLayout());
+
+    private JPanel makeToolbarPanel() {
+        JPanel toolbarPanel = new JPanel(new BorderLayout());
         toolbarPanel.setBackground(TOOLBAR_COLOR);
-        toolbar = new Toolbar(true);
+        toolbar = new Toolbar();
         JToolBar jToolBar = toolbar.getToolBar();
         jToolBar.setFloatable(false);
         JPanel temp = new JPanel(new BorderLayout());
         temp.add(jToolBar);
         toolbarPanel.add(temp, BorderLayout.WEST);
         toolbarPanel.setBorder(BorderFactory.createCompoundBorder());
+
+        return toolbarPanel;
     }
 
-    private void initDownloadsList() {
-        list = new DownloadsList(true);
+    private JPanel makeDownloadsListPanel(boolean isCompleted) {
 
-        for (int i=1;i<=3;i++){
-            Download download = new Download("Download" + i, "Link" + i);
-            download.setSizeInBytes(Math.abs(new Random().nextInt(1000000000)));
-            download.setDownloadedBytes(new Random().nextInt(download.getSizeInBytes()));
-            download.setBytesPerSecond(new Random().nextInt(2000000));
-
-            list.addDownloadToList(download);
+        if (isCompleted) {
+            list = DownloadManager.getCompleted();
+        } else if (! isCompleted){
+            list = DownloadManager.getProccessing();
         }
 
-        downloadsPanel = new JPanel(new BorderLayout());
-        downloadsPanel.add(toolbarPanel, BorderLayout.NORTH);
+        JPanel listPanel = new JPanel(new BorderLayout());
+        listPanel.add(makeToolbarPanel(), BorderLayout.NORTH);
 
         JScrollPane downloads = new JScrollPane(list.getDownloadEntries(), JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        downloads.setBackground(GUI.BACKGROUND_COLOR);
-        downloads.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        downloads.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         downloads.setOpaque(true);
-        downloadsPanel.add(downloads, BorderLayout.CENTER);
-        downloadsPanel.setOpaque(true);
-        downloadsPanel.setBackground(BACKGROUND_COLOR);
 
+        listPanel.add(downloads, BorderLayout.CENTER);
+        return listPanel;
     }
 
     public static ArrayList<Component> getAllComponents(final Container c) {
@@ -439,12 +448,8 @@ public class GUI {
         return compList;
     }
 
-    public static void showMainFrame() {
-        mainFrame.setVisible(true);
-    }
-
-    public static DownloadsList getList() {
-        return list;
+    public void showGUI() {
+        frame.setVisible(true);
     }
 
     public void update() {
@@ -456,17 +461,18 @@ public class GUI {
         JFrame about = new JFrame();
         about.setTitle("About");
         about.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        about.setSize(300,200);
-        about.setLocationRelativeTo(mainFrame);
+        about.setSize(400, 200);
         about.setIconImage(new ImageIcon("src/icons/about.png").getImage());
         about.setResizable(false);
 
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         JTextArea area = new JTextArea();
+        area.setFont(new Font("Arial", 14,14));
         area.setBackground(BACKGROUND_COLOR);
         area.setEditable(false);
-        area.setText("This software is developed by:" + '\n' + "Mohammadhossein Naderi 9631815" + '\n' + "Email:    mhnaderi99@gmail.com" + '\n' + "Phone:      +989383444200");
+        area.setText("This software is developed by:" + '\n' + "Mohammadhossein Naderi 9631815" + '\n' + "Email:    mhnaderi99@gmail.com" + '\n' + "Phone:      +989383444200" +
+                '\n' + "This is a simple download manager." + '\n' +"By using JDM you can easily manage your downloads." + '\n' + "12/5/2018 - 19/5/2018");
         panel.add(area, BorderLayout.CENTER);
         about.add(panel);
 
@@ -479,14 +485,13 @@ public class GUI {
         sort.setIconImage(new ImageIcon("src/icons/sort.png").getImage());
         sort.setResizable(false);
         sort.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        sort.setLocationRelativeTo(mainFrame);
-        sort.setSize(400,180);
+        sort.setSize(400, 180);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(true);
-        panel.setBorder(BorderFactory.createEmptyBorder(10,5,5,5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
 
-        Border border = BorderFactory.createEmptyBorder(3,5,3,5);
+        Border border = BorderFactory.createEmptyBorder(3, 5, 3, 5);
 
         JPanel filtersPanel = new JPanel(new BorderLayout());
         filtersPanel.setOpaque(true);
@@ -494,7 +499,7 @@ public class GUI {
 
         JPanel buttonsPanel = new JPanel(new BorderLayout());
         buttonsPanel.setOpaque(true);
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5,20,5,5));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 20, 5, 5));
 
         JPanel firstFilterPanel = new JPanel(new BorderLayout());
         firstFilterPanel.setOpaque(true);
@@ -507,7 +512,6 @@ public class GUI {
         String[] arr = {"By name", "By size", "By creation time", "By downloaded percentage", "By downloaded amount"};
         JLabel filter1 = new JLabel("First filter:      ");
         JLabel filter2 = new JLabel("Second filter:  ");
-
 
 
         JComboBox firstFilter = new JComboBox(arr);
@@ -576,8 +580,7 @@ public class GUI {
             public void itemStateChanged(ItemEvent e) {
                 if (firstIsAscending.isSelected()) {
                     firstIsAscending.setText(" Ascending ");
-                }
-                else {
+                } else {
                     firstIsAscending.setText("Descending");
                 }
             }
@@ -588,8 +591,7 @@ public class GUI {
             public void itemStateChanged(ItemEvent e) {
                 if (secondIsAscending.isSelected()) {
                     secondIsAscending.setText(" Ascending ");
-                }
-                else {
+                } else {
                     secondIsAscending.setText("Descending");
                 }
             }
@@ -619,11 +621,7 @@ public class GUI {
         return sort;
     }
 
-    public static JFrame getMainFrame() {
-        return mainFrame;
-    }
-
-    public static Image getScaledImage(Image srcImg, int w, int h){
+    public static Image getScaledImage(Image srcImg, int w, int h) {
         BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resizedImg.createGraphics();
 
@@ -637,4 +635,9 @@ public class GUI {
     public static Toolbar getToolbar() {
         return toolbar;
     }
+
+    public static JFrame getFrame() {
+        return frame;
+    }
+
 }

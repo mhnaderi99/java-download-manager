@@ -1,12 +1,8 @@
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.plaf.basic.BasicProgressBarUI;
-import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -18,9 +14,10 @@ public class DownloadsList extends JList<DownloadEntry> {
     private ArrayList<DownloadEntry> downloads;
     private DownloadEntryRenderer renderer;
     private DefaultListModel<DownloadEntry> model;
+    private boolean isCompleted;
 
     public DownloadsList(boolean isCompleted) {
-
+        this.isCompleted = isCompleted;
         downloads = new ArrayList<DownloadEntry>();
         renderer = new DownloadEntryRenderer(isCompleted);
         initJlist();
@@ -30,21 +27,27 @@ public class DownloadsList extends JList<DownloadEntry> {
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         setLayoutOrientation(JList.VERTICAL);
         setCellRenderer(renderer);
-
-
-        GUI.getToolbar().getToolBar().addMouseMotionListener(new disableHandler());
         addMouseMotionListener(new disableHandler());
         addMouseListener(new disableHandler());
 
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON3) {
-                    int index = locationToIndex(e.getPoint());
-                    setSelectedIndex(index);
-                    //Show details
-                    JFrame details = getModel().get(index).makeDetailsFrame();
-                    details.setVisible(true);
+                int index = locationToIndex(e.getPoint());
+                if (index != -1) {
+                    if (e.getButton() == MouseEvent.BUTTON3) {
+                        setSelectedIndex(index);
+                        //Show details
+                        JFrame details = getModel().get(index).makeDetailsFrame();
+                        details.setVisible(true);
+                    }
+                    if (e.getClickCount() == 2) {
+                        if (isCompleted) {
+                            downloads.get(index).getDownload().openFile();
+                        } else {
+                            downloads.get(index).getDownload().openFolder();
+                        }
+                    }
                 }
             }
         });
@@ -56,10 +59,11 @@ public class DownloadsList extends JList<DownloadEntry> {
 
 
     public void addDownloadToList(Download download) {
-        downloads.add(new DownloadEntry(download));
-        model.addElement(new DownloadEntry(download));
-        setModel(model);
-        //updateUI();
+        if (! isCompleted) {
+            downloads.add(new DownloadEntry(download));
+            model.addElement(new DownloadEntry(download));
+            setModel(model);
+        }
     }
 
     public JList<DownloadEntry> getDownloadEntries() {
@@ -113,6 +117,7 @@ public class DownloadsList extends JList<DownloadEntry> {
         }
     }
 
+
     private class disableHandler extends MouseAdapter {
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -135,5 +140,10 @@ public class DownloadsList extends JList<DownloadEntry> {
         public void mouseExited(MouseEvent e) {
             checkDisablity();
         }
+    }
+
+    public void setModel(DefaultListModel<DownloadEntry> model) {
+        this.model = model;
+        getDownloadEntries().setModel(model);
     }
 }
