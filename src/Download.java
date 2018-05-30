@@ -27,7 +27,7 @@ public class Download implements Serializable{
 
 
     public Download(String name, String link){
-        saveTo = Settings.getSaveToPath();
+        saveTo = DownloadManager.getSettings().getSaveToPath();
         this.name = name;
         this.link = link;
         state = status.Downloading;

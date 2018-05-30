@@ -24,20 +24,19 @@ public class GUI {
     private static DownloadsList list;
 
 
-    private HashMap<JLabel, Boolean> categoriesClicked;
+    private static HashMap<JLabel, Boolean> categoriesClicked;
 
     public static Color LEFT_SIDE_BACK_COLOR = new Color(50, 54, 63);
     public static Color LEFT_SIDE_BACK_COLOR_PRESSED = new Color(100, 104, 113);
     public static Color BACKGROUND_COLOR = new Color(231, 239, 251);
     public static Color TOOLBAR_COLOR = new Color(208, 223, 248);
 
-    public GUI(boolean isCompleted) {
-        list = new DownloadsList(false);
-        initiateFrame(isCompleted);
+    public GUI(DownloadsList.state mode) {
+        list = new DownloadsList(mode);
+        initiateFrame(mode);
     }
 
-    private void initiateFrame(boolean isCompleted) {
-        frame = null;
+    private static void initiateFrame(DownloadsList.state mode) {
         frame = new JFrame("JDM");
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -69,7 +68,7 @@ public class GUI {
         frame.setSize(800, 600);
         //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setJMenuBar(new MenuBar().getMenuBar());
-        frame.add(makeMainPanel(isCompleted));
+        frame.add(makeMainPanel(mode));
     }
 
     public static JFrame makeAddDownloadFrame() {
@@ -146,12 +145,13 @@ public class GUI {
         auto.setSelected(true);
         JRadioButton manual = new JRadioButton("Manually");
         JPanel queuesPanel = new JPanel(new BorderLayout());
-        JRadioButton queue = new JRadioButton("Queues");
-        JComboBox queues = new JComboBox(DownloadManager.getQueues().toArray());
-        queues.setPrototypeDisplayValue("...............");
-        queues.setEnabled(false);
+        JRadioButton queue = new JRadioButton("Queue");
+        //JComboBox queues = new JComboBox();
+
+        //queues.setPrototypeDisplayValue("...............");
+        //queues.setEnabled(false);
         JPanel comboPanel = new JPanel(new BorderLayout());
-        comboPanel.add(queues, BorderLayout.WEST);
+        //comboPanel.add(queues, BorderLayout.WEST);
 
         queuesPanel.add(queue, BorderLayout.WEST);
         queuesPanel.add(comboPanel, BorderLayout.CENTER);
@@ -198,21 +198,21 @@ public class GUI {
         auto.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                queues.setEnabled(false);
+                //queues.setEnabled(false);
             }
         });
 
         manual.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                queues.setEnabled(false);
+                //queues.setEnabled(false);
             }
         });
 
         queue.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                queues.setEnabled(true);
+                //queues.setEnabled(true);
             }
         });
 
@@ -241,11 +241,11 @@ public class GUI {
                         } else {
                             status = Download.status.Paused;
                             if (queue.isSelected()) {
-                                int q = queues.getSelectedIndex();
-                                DownloadManager.getQueues().get(q).add(download);
+                                //int q = queues.getSelectedIndex();
+                                DownloadManager.getQueue().addDownloadToList(download);
                             }
                         }
-                        if (Settings.isSynchronicDownloadsLimited() && DownloadManager.getInProgressDownloads() >= Settings.getMaximumSynchronicDownloads() && status.equals(Download.status.Downloading)) {
+                        if (DownloadManager.getSettings().isSynchronicDownloadsLimited() && DownloadManager.getInProgressDownloads() >= DownloadManager.getSettings().getMaximumSynchronicDownloads() && status.equals(Download.status.Downloading)) {
                             download.setState(Download.status.Paused);
                             JOptionPane.showMessageDialog(frame, "Download status was automatically set to paused, due to maximum synchronic downloads limit.", "Message",1);
                         }
@@ -276,16 +276,16 @@ public class GUI {
         return addDownloadFrame;
     }
 
-    private JPanel makeMainPanel(boolean isCompleted) {
+    private static JPanel makeMainPanel(DownloadsList.state mode) {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(true);
         mainPanel.add(makeLeftBar(), BorderLayout.WEST);
-        makeDownloadsListPanel(isCompleted);
-        mainPanel.add(makeDownloadsListPanel(isCompleted), BorderLayout.CENTER);
+        //makeDownloadsListPanel(mode);
+        mainPanel.add(makeDownloadsListPanel(mode), BorderLayout.CENTER);
         return mainPanel;
     }
 
-    private JPanel makeLeftBar() {
+    private static JPanel makeLeftBar() {
         categoriesClicked = new HashMap<JLabel, Boolean>();
 
         JPanel leftBar = new JPanel(new BorderLayout());
@@ -328,8 +328,8 @@ public class GUI {
         completed.addMouseListener(new leftMenuMouseHandler());
         categoriesClicked.put(completed, false);
 
-        JLabel queues = new JLabel("Default");
-        queues.setName("queues");
+        JLabel queues = new JLabel("Queue");
+        queues.setName("queue");
         queues.setOpaque(true);
         queues.setToolTipText("Downloads in queue");
         queues.setForeground(BACKGROUND_COLOR);
@@ -351,7 +351,7 @@ public class GUI {
         return leftBar;
     }
 
-    private class leftMenuMouseHandler implements MouseListener {
+    private static class leftMenuMouseHandler implements MouseListener {
 
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -371,7 +371,8 @@ public class GUI {
             if (((JLabel) e.getSource()).getName().equals("completed")) {
 
             }
-            if (((JLabel) e.getSource()).getName().equals("queues")) {
+            if (((JLabel) e.getSource()).getName().equals("queue")) {
+
             }
 
         }
@@ -404,7 +405,7 @@ public class GUI {
     }
 
 
-    private JPanel makeToolbarPanel() {
+    private static JPanel makeToolbarPanel() {
         JPanel toolbarPanel = new JPanel(new BorderLayout());
         toolbarPanel.setBackground(TOOLBAR_COLOR);
         toolbar = new Toolbar();
@@ -418,13 +419,9 @@ public class GUI {
         return toolbarPanel;
     }
 
-    private JPanel makeDownloadsListPanel(boolean isCompleted) {
+    private static JPanel makeDownloadsListPanel(DownloadsList.state mode) {
 
-        if (isCompleted) {
-            list = DownloadManager.getCompleted();
-        } else if (! isCompleted){
-            list = DownloadManager.getProccessing();
-        }
+        setList(mode);
 
         JPanel listPanel = new JPanel(new BorderLayout());
         listPanel.add(makeToolbarPanel(), BorderLayout.NORTH);
@@ -630,6 +627,29 @@ public class GUI {
         g2.dispose();
 
         return resizedImg;
+    }
+
+    public static void setList(DownloadsList.state mode) {
+        switch (mode) {
+            case Completed: {
+                GUI.list = DownloadManager.getCompleted();
+                break;
+            }
+
+            case Processing: {
+                GUI.list = DownloadManager.getProccessing();
+                break;
+            }
+            case Removed: {
+                GUI.list = DownloadManager.getRemoved();
+                break;
+            }
+            case Queue: {
+                GUI.list = DownloadManager.getQueue();
+                break;
+            }
+        }
+        SwingUtilities.updateComponentTreeUI(frame);
     }
 
     public static Toolbar getToolbar() {

@@ -143,7 +143,7 @@ public class Toolbar {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            if (! Settings.getLookAndFeel().equals("javax.swing.plaf.nimbus.NimbusLookAndFeel")) {
+            if (!DownloadManager.getSettings().getLookAndFeel().equals("javax.swing.plaf.nimbus.NimbusLookAndFeel")) {
                 JButton button = (JButton) e.getSource();
                 button.setBackground(GUI.BACKGROUND_COLOR);
             }
@@ -152,7 +152,7 @@ public class Toolbar {
 
         @Override
         public void mouseExited(MouseEvent e) {
-            if (! Settings.getLookAndFeel().equals("javax.swing.plaf.nimbus.NimbusLookAndFeel")) {
+            if (! DownloadManager.getSettings().getLookAndFeel().equals("javax.swing.plaf.nimbus.NimbusLookAndFeel")) {
                 JButton button = (JButton) e.getSource();
                 button.setBackground(GUI.TOOLBAR_COLOR);
             }

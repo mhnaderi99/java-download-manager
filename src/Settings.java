@@ -5,18 +5,19 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.Serializable;
 
-public class Settings {
+public class Settings implements Serializable{
 
-    private static JFrame settingsFrame;
-    private static String lookAndFeel;
-    private static String saveToPath;
-    private static boolean synchronicDownloadsLimited;
-    private static int maximumSynchronicDownloads;
-    private static String[] lAndFs;
-    private static String[] lAndFNames;
+    private transient JFrame settingsFrame;
+    private String lookAndFeel;
+    private String saveToPath;
+    private Boolean synchronicDownloadsLimited;
+    private Integer maximumSynchronicDownloads;
+    private String[] lAndFs;
+    private String[] lAndFNames;
+
     public Settings() {
-
         lAndFs = new String[] {UIManager.getSystemLookAndFeelClassName(), "javax.swing.plaf.nimbus.NimbusLookAndFeel", "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"};
         lAndFNames = new String[] {"System default", "Nimbus", "Windows classic"};
         maximumSynchronicDownloads = 10;
@@ -25,7 +26,7 @@ public class Settings {
         saveToPath = System.getProperty("user.home") + "\\Desktop";
     }
 
-    public static JFrame makeSettingsFrame() {
+    public JFrame makeSettingsFrame() {
         settingsFrame = new JFrame("Settings");
         settingsFrame.setIconImage(new ImageIcon("src/icons/settings.png").getImage());
         settingsFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -33,11 +34,10 @@ public class Settings {
         settingsFrame.setSize(700,650);
         settingsFrame.setLocationRelativeTo(GUI.getFrame());
         settingsFrame.add(makeMainPanel());
-
         return settingsFrame;
     }
 
-    private static JScrollPane makeMainPanel() {
+    private JScrollPane makeMainPanel() {
         final int[] tempLimit = {maximumSynchronicDownloads};
         final String[] tempPath = {saveToPath};
         final String[] tempLAndF = {lookAndFeel};
@@ -266,19 +266,25 @@ public class Settings {
         return pane;
     }
 
-    public static String getSaveToPath() {
+    public String getSaveToPath() {
         return saveToPath;
     }
 
-    public static int getMaximumSynchronicDownloads() {
+    public int getMaximumSynchronicDownloads() {
         return maximumSynchronicDownloads;
     }
 
-    public static String getLookAndFeel() {
+    public String getLookAndFeel() {
         return lookAndFeel;
     }
 
-    public static boolean isSynchronicDownloadsLimited() {
+    public boolean isSynchronicDownloadsLimited() {
         return synchronicDownloadsLimited;
+    }
+
+
+    @Override
+    public String toString() {
+        return synchronicDownloadsLimited + ", " + maximumSynchronicDownloads + ", " + saveToPath + ", " + lookAndFeel;
     }
 }

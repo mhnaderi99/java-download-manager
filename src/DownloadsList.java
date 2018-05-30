@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -11,15 +9,19 @@ import java.util.Comparator;
  */
 public class DownloadsList extends JList<DownloadEntry> {
 
+    public enum state{
+        Completed, Processing, Removed, Queue
+    }
+
     private ArrayList<DownloadEntry> downloads;
     private DownloadEntryRenderer renderer;
     private DefaultListModel<DownloadEntry> model;
-    private boolean isCompleted;
+    private state mode;
 
-    public DownloadsList(boolean isCompleted) {
-        this.isCompleted = isCompleted;
+    public DownloadsList(state mode) {
+        this.mode = mode;
         downloads = new ArrayList<DownloadEntry>();
-        renderer = new DownloadEntryRenderer(isCompleted);
+        renderer = new DownloadEntryRenderer(mode);
         initJlist();
     }
 
@@ -42,9 +44,9 @@ public class DownloadsList extends JList<DownloadEntry> {
                         details.setVisible(true);
                     }
                     if (e.getClickCount() == 2) {
-                        if (isCompleted) {
+                        if (mode == state.Completed) {
                             downloads.get(index).getDownload().openFile();
-                        } else {
+                        } else if (mode == state.Processing || mode == state.Queue){
                             downloads.get(index).getDownload().openFolder();
                         }
                     }
@@ -59,7 +61,7 @@ public class DownloadsList extends JList<DownloadEntry> {
 
 
     public void addDownloadToList(Download download) {
-        if (! isCompleted) {
+        if (! (mode == state.Completed)) {
             downloads.add(new DownloadEntry(download));
             model.addElement(new DownloadEntry(download));
             setModel(model);

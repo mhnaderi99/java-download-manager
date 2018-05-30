@@ -5,19 +5,27 @@ public class DownloadManager {
 
     private static GUI gui;
     private static Settings settings;
-    private static DownloadsList completed, proccessing;
-    private static ArrayList<Queue> queues;
-    public static final int INF = Integer.MAX_VALUE;
+    private static DownloadsList completed, proccessing, removed, queue;
+
+    public static final transient int INF = Integer.MAX_VALUE;
 
     public DownloadManager() {
-        queues = new ArrayList<Queue>();
-        queues.add(new Queue("Default"));
-        settings = new Settings();
-        setLookAndFeel(Settings.getLookAndFeel());
-        completed = new DownloadsList(true);
-        proccessing = new DownloadsList(false);
-        gui = new GUI(false);
+        settings = SerializationHandler.loadSettings();
+        setLookAndFeel(settings.getLookAndFeel());
+        completed = new DownloadsList(DownloadsList.state.Completed);
+        proccessing = new DownloadsList(DownloadsList.state.Processing);
+        queue = new DownloadsList(DownloadsList.state.Queue);
+        removed = new DownloadsList(DownloadsList.state.Removed);
+        gui = new GUI(DownloadsList.state.Processing);
         gui.showGUI();
+    }
+
+    public static GUI getGui() {
+        return gui;
+    }
+
+    public static void setGui(GUI gui) {
+        DownloadManager.gui = gui;
     }
 
     public static DownloadsList getProccessing() {
@@ -32,8 +40,12 @@ public class DownloadManager {
         return settings;
     }
 
-    public static ArrayList<Queue> getQueues() {
-        return queues;
+    public static DownloadsList getQueue() {
+        return queue;
+    }
+
+    public static DownloadsList getRemoved() {
+        return removed;
     }
 
     public static void updateUI() {
@@ -55,8 +67,8 @@ public class DownloadManager {
     public static void resumeDownloads() {
         boolean flag = false;
         int[] indices = proccessing.getDownloadEntries().getSelectedIndices();
-        if (Settings.isSynchronicDownloadsLimited()) {
-            if (getInProgressDownloads() + indices.length > Settings.getMaximumSynchronicDownloads()) {
+        if (settings.isSynchronicDownloadsLimited()) {
+            if (getInProgressDownloads() + indices.length > settings.getMaximumSynchronicDownloads()) {
                 flag = true;
             }
         }
@@ -114,7 +126,7 @@ public class DownloadManager {
 
     public static void resumeAllDownloads() {
         boolean flag = false;
-        if (proccessing.getDownloads().size() > Settings.getMaximumSynchronicDownloads() && Settings.isSynchronicDownloadsLimited()) {
+        if (proccessing.getDownloads().size() > settings.getMaximumSynchronicDownloads() && settings.isSynchronicDownloadsLimited()) {
             flag = true;
         }
         if (flag) {

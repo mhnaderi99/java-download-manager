@@ -8,10 +8,10 @@ import java.util.ArrayList;
 
 public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry> {
 
-    private boolean isCompleted;
+    private DownloadsList.state mode;
 
-    public DownloadEntryRenderer(boolean isCompleted) {
-        this.isCompleted = isCompleted;
+    public DownloadEntryRenderer(DownloadsList.state mode) {
+        this.mode = mode;
     }
 
     @Override

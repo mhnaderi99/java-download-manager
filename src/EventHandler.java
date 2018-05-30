@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 
 public class EventHandler implements ActionListener {
     @Override
@@ -50,9 +51,10 @@ public class EventHandler implements ActionListener {
             DownloadManager.removeDownloads();
         }
         if (key.equals("settings")) {
-            Settings.makeSettingsFrame().setVisible(true);
+            DownloadManager.getSettings().makeSettingsFrame().setVisible(true);
         }
-        if (key.equals("exit")) {
+        if (key.equals("exit")){
+            SerializationHandler.saveSettings();
             System.exit(0);
         }
         if (key.equals("about")) {
@@ -60,4 +62,6 @@ public class EventHandler implements ActionListener {
         }
 
     }
+
+
 }
