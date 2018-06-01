@@ -4,9 +4,10 @@ import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry> {
+public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, Serializable{
 
     private DownloadsList.state mode;
 

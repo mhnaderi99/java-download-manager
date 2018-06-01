@@ -7,29 +7,30 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 
 /**
  * Created by 9631815 on 5/12/2018.
  */
-public class DownloadEntry {
+public class DownloadEntry implements Serializable{
 
     private Download download;
-    private JPanel panel;
-    private JPanel iconPanel;
-    private JPanel titlePanel;
-    private JPanel content;
-    private JPanel details;
-    private JPanel buttons;
+    private transient JPanel panel;
+    private transient JPanel iconPanel;
+    private transient JPanel titlePanel;
+    private transient JPanel content;
+    private transient JPanel details;
+    private transient JPanel buttons;
 
-    private JLabel icon;
-    private JLabel progress;
-    private JLabel title;
-    private JLabel resume;
-    private JLabel open;
-    private JLabel cancel;
-    private JLabel speed;
+    private transient JLabel icon;
+    private transient JLabel progress;
+    private transient JLabel title;
+    private transient JLabel resume;
+    private transient JLabel open;
+    private transient JLabel cancel;
+    private transient JLabel speed;
 
-    private JProgressBar progressBar;
+    private transient JProgressBar progressBar;
 
     public DownloadEntry(Download download) {
         this.download = download;

@@ -10,23 +10,25 @@ import java.util.*;
  */
 public class Download implements Serializable{
 
-
-    public enum status {
+    public enum status implements Serializable{
         Downloading, Paused, Cancelled, Finished
     }
 
     private String name;
     private String link;
     private status state;
-    private int sizeInBytes;
-    private int downloadedBytes;
-    private int bytesPerSecond;
+    private Integer sizeInBytes;
+    private Integer downloadedBytes;
+    private Integer bytesPerSecond;
     private Date creationTime;
     private Date finishTime;
     private String saveTo;
 
 
     public Download(String name, String link){
+        sizeInBytes = 0;
+        downloadedBytes = 0;
+        bytesPerSecond = 0;
         saveTo = DownloadManager.getSettings().getSaveToPath();
         this.name = name;
         this.link = link;
@@ -127,11 +129,11 @@ public class Download implements Serializable{
         return link;
     }
 
-    public int getSizeInBytes() {
+    public Integer getSizeInBytes() {
         return sizeInBytes;
     }
 
-    public int getDownloadedBytes() {
+    public Integer getDownloadedBytes() {
         return downloadedBytes;
     }
 

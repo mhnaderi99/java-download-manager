@@ -22,8 +22,6 @@ public class GUI {
     private static JFrame frame;
     private static Toolbar toolbar;
     private static DownloadsList list;
-
-
     private static HashMap<JLabel, Boolean> categoriesClicked;
 
     public static Color LEFT_SIDE_BACK_COLOR = new Color(50, 54, 63);
@@ -241,7 +239,6 @@ public class GUI {
                         } else {
                             status = Download.status.Paused;
                             if (queue.isSelected()) {
-                                //int q = queues.getSelectedIndex();
                                 DownloadManager.getQueue().addDownloadToList(download);
                             }
                         }
@@ -263,7 +260,7 @@ public class GUI {
                             //JOptionPane.showMessageDialog(addDownloadMainPanel, "Error");
                         //}
 
-                        DownloadManager.getProccessing().addDownloadToList(download);
+                        if (! queue.isSelected()) {DownloadManager.getProccessing().addDownloadToList(download);}
 
                         addDownloadFrame.dispatchEvent(new WindowEvent(addDownloadFrame, WindowEvent.WINDOW_CLOSING));
                     }
@@ -280,8 +277,8 @@ public class GUI {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(true);
         mainPanel.add(makeLeftBar(), BorderLayout.WEST);
-        //makeDownloadsListPanel(mode);
-        mainPanel.add(makeDownloadsListPanel(mode), BorderLayout.CENTER);
+        JPanel downloadsPanel = makeDownloadsListPanel(mode);
+        mainPanel.add(downloadsPanel, BorderLayout.CENTER);
         return mainPanel;
     }
 
@@ -313,8 +310,6 @@ public class GUI {
         processing.setFont(new Font("Arial", Font.BOLD, 13));
         processing.setIcon(new ImageIcon("src/icons/processing.png"));
         processing.addMouseListener(new leftMenuMouseHandler());
-        categoriesClicked.put(processing, true);
-
 
         JLabel completed = new JLabel("Completed");
         completed.setName("completed");
@@ -326,23 +321,25 @@ public class GUI {
         completed.setFont(new Font("Arial", Font.BOLD, 13));
         completed.setIcon(new ImageIcon("src/icons/completed.png"));
         completed.addMouseListener(new leftMenuMouseHandler());
-        categoriesClicked.put(completed, false);
 
-        JLabel queues = new JLabel("Queue");
-        queues.setName("queue");
-        queues.setOpaque(true);
-        queues.setToolTipText("Downloads in queue");
-        queues.setForeground(BACKGROUND_COLOR);
-        queues.setBackground(LEFT_SIDE_BACK_COLOR);
-        queues.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 84));
-        queues.setFont(new Font("Arial", Font.BOLD, 13));
-        queues.setIcon(new ImageIcon("src/icons/queue.png"));
-        queues.addMouseListener(new leftMenuMouseHandler());
-        categoriesClicked.put(queues, false);
+        JLabel queue = new JLabel("Queue");
+        queue.setName("queue");
+        queue.setOpaque(true);
+        queue.setToolTipText("Downloads in queue");
+        queue.setForeground(BACKGROUND_COLOR);
+        queue.setBackground(LEFT_SIDE_BACK_COLOR);
+        queue.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 84));
+        queue.setFont(new Font("Arial", Font.BOLD, 13));
+        queue.setIcon(new ImageIcon("src/icons/queue.png"));
+        queue.addMouseListener(new leftMenuMouseHandler());
+
+        categoriesClicked.put(processing, true);
+        categoriesClicked.put(completed, false);
+        categoriesClicked.put(queue, false);
 
         options.add(processing);
         options.add(completed);
-        options.add(queues);
+        options.add(queue);
 
         leftBar.setBackground(LEFT_SIDE_BACK_COLOR);
         leftBar.add(image, BorderLayout.NORTH);
@@ -366,13 +363,16 @@ public class GUI {
             label.setBackground(Color.BLACK);
 
             if (((JLabel) e.getSource()).getName().equals("proccessing")) {
-
+                setList(DownloadManager.getProccessing());
+                DownloadManager.setState(DownloadsList.state.Processing);
             }
             if (((JLabel) e.getSource()).getName().equals("completed")) {
-
+                setList(DownloadManager.getCompleted());
+                DownloadManager.setState(DownloadsList.state.Completed);
             }
             if (((JLabel) e.getSource()).getName().equals("queue")) {
-
+                DownloadManager.setState(DownloadsList.state.Queue);
+                setList(DownloadManager.getQueue());
             }
 
         }
@@ -413,7 +413,7 @@ public class GUI {
         jToolBar.setFloatable(false);
         JPanel temp = new JPanel(new BorderLayout());
         temp.add(jToolBar);
-        toolbarPanel.add(temp, BorderLayout.WEST);
+        toolbarPanel.add(temp, BorderLayout.CENTER);
         toolbarPanel.setBorder(BorderFactory.createCompoundBorder());
 
         return toolbarPanel;
@@ -421,17 +421,49 @@ public class GUI {
 
     private static JPanel makeDownloadsListPanel(DownloadsList.state mode) {
 
-        setList(mode);
+        setList(getList(mode));
 
         JPanel listPanel = new JPanel(new BorderLayout());
+        listPanel.setOpaque(true);
+        listPanel.setBackground(BACKGROUND_COLOR);
         listPanel.add(makeToolbarPanel(), BorderLayout.NORTH);
 
-        JScrollPane downloads = new JScrollPane(list.getDownloadEntries(), JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        downloads.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        downloads.setOpaque(true);
+        JScrollPane pane = new JScrollPane(list.getDownloadEntries(), JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        pane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        pane.setOpaque(true);
+        pane.setBackground(BACKGROUND_COLOR);
+        listPanel.add(pane, BorderLayout.CENTER);
 
-        listPanel.add(downloads, BorderLayout.CENTER);
         return listPanel;
+    }
+
+    private static DownloadsList getList(DownloadsList.state mode) {
+        if (mode == DownloadsList.state.Completed) {return DownloadManager.getCompleted();}
+        if (mode == DownloadsList.state.Processing) {return DownloadManager.getProccessing();}
+        if (mode == DownloadsList.state.Queue) {return DownloadManager.getQueue();}
+        if (mode == DownloadsList.state.Removed) {return DownloadManager.getRemoved();}
+
+        return null;
+    }
+
+    public static void setList(DownloadsList downloadsList) {
+        DownloadsList.state mode = downloadsList.getMode();
+        if (mode == DownloadsList.state.Processing) {
+            list.setModel(DownloadManager.getProccessing().getModel());
+        }
+        if (mode == DownloadsList.state.Completed) {
+            list.setModel(DownloadManager.getCompleted().getModel());
+        }
+        if (mode == DownloadsList.state.Removed) {
+            list.setModel(DownloadManager.getRemoved().getModel());
+        }
+        if (mode == DownloadsList.state.Queue) {
+            list.setModel(DownloadManager.getQueue().getModel());
+        }
+        if (mode == DownloadsList.state.SearchResult) {
+            list.setModel(downloadsList.getModel());
+        }
+        SwingUtilities.updateComponentTreeUI(list);
     }
 
     public static ArrayList<Component> getAllComponents(final Container c) {
@@ -629,29 +661,6 @@ public class GUI {
         return resizedImg;
     }
 
-    public static void setList(DownloadsList.state mode) {
-        switch (mode) {
-            case Completed: {
-                GUI.list = DownloadManager.getCompleted();
-                break;
-            }
-
-            case Processing: {
-                GUI.list = DownloadManager.getProccessing();
-                break;
-            }
-            case Removed: {
-                GUI.list = DownloadManager.getRemoved();
-                break;
-            }
-            case Queue: {
-                GUI.list = DownloadManager.getQueue();
-                break;
-            }
-        }
-        SwingUtilities.updateComponentTreeUI(frame);
-    }
-
     public static Toolbar getToolbar() {
         return toolbar;
     }
@@ -660,4 +669,7 @@ public class GUI {
         return frame;
     }
 
+    public static DownloadsList getList() {
+        return list;
+    }
 }

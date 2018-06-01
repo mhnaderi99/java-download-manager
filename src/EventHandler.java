@@ -55,10 +55,17 @@ public class EventHandler implements ActionListener {
         }
         if (key.equals("exit")){
             SerializationHandler.saveSettings();
+            SerializationHandler.saveProcessing();
+            SerializationHandler.saveQueue();
+            SerializationHandler.saveCompleted();
+            SerializationHandler.saveRemoved();
             System.exit(0);
         }
         if (key.equals("about")) {
             GUI.makeAboutFrame().setVisible(true);
+        }
+        if (key.equals("search")) {
+
         }
 
     }

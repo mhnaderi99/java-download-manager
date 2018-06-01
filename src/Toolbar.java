@@ -1,6 +1,12 @@
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 
 /**
  * Created by 9631815 on 5/12/2018.
@@ -16,6 +22,8 @@ public class Toolbar {
     private JButton sortDownloads;
     private JButton removeAllDownloads;
     private JButton settings;
+    private JTextField search;
+    private JLabel searchButton;
 
 
     public Toolbar() {
@@ -122,6 +130,60 @@ public class Toolbar {
         settings.setPressedIcon(new ImageIcon("src/icons/pressed/settings.png"));
         settings.addMouseListener(new mouseHandler());
 
+        search = new JTextField() {
+            @Override
+            public void setBorder(Border border) {
+            }
+        };
+        search.setName("search text");
+        search.setText("");
+        search.setToolTipText("Search here");
+        search.setBackground(GUI.TOOLBAR_COLOR);
+        search.setHorizontalAlignment(JTextField.RIGHT);
+        search.setSelectedTextColor(GUI.BACKGROUND_COLOR);
+        search.setSelectionColor(GUI.LEFT_SIDE_BACK_COLOR_PRESSED);
+        search.setOpaque(true);
+        search.setFont(new Font("Arial", Font.PLAIN, 15));
+        search.setForeground(GUI.LEFT_SIDE_BACK_COLOR);
+        search.setFocusable(true);
+        search.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                String text = search.getText();
+                if (! text.equals("")) {
+                    GUI.setList(DownloadManager.searchResults(text));
+                }
+                else {
+                    GUI.setList(DownloadManager.getListByState());
+                }
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                String text = search.getText();
+                if (! text.equals("")) {
+                    GUI.setList(DownloadManager.searchResults(text));
+                }
+                else {
+                    GUI.setList(DownloadManager.getListByState());
+                }
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+
+            }
+        });
+        search.setOpaque(true);
+
+        searchButton = new JLabel("");
+        searchButton.setName("search");
+        searchButton.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
+        searchButton.setToolTipText("Search");
+        searchButton.setIcon(new ImageIcon("src/icons/search.png"));
+        searchButton.setBackground(new Color(208,223,248));
+        searchButton.setFocusable(false);
+        searchButton.setOpaque(true);
     }
 
     private class mouseHandler implements MouseListener {
@@ -166,6 +228,7 @@ public class Toolbar {
 
 
             toolBar = new JToolBar("Toolbar", JToolBar.HORIZONTAL);
+            toolBar.setBackground(new Color(208,223,248));
             toolBar.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -176,27 +239,62 @@ public class Toolbar {
                     }
                 }
             });
-            toolBar.setOpaque(true);
-            toolBar.setBackground(new Color(208, 223, 248));
-            toolBar.setBorderPainted(false);
-            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+            toolBar.setLayout(new BorderLayout());
 
-            toolBar.setOpaque(true);
-            toolBar.add(addNewDownload);
-            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+            JPanel buttons = new JPanel(new GridLayout(1,7,0,0));
+            buttons.setOpaque(true);
+            buttons.setBackground(new Color(208,223,248));
 
-            toolBar.add(pauseAllDownloads);
-            toolBar.add(resumeAllDownloads);
-            toolBar.add(cancelAllDownloads);
-            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+            buttons.add(addNewDownload);
+            buttons.add(pauseAllDownloads);
+            buttons.add(resumeAllDownloads);
+            buttons.add(cancelAllDownloads);
+            buttons.add(sortDownloads);
+            buttons.add(removeAllDownloads);
+            buttons.add(settings);
+            buttons.setBorder(BorderFactory.createEmptyBorder(1,1,1,10));
 
-            toolBar.add(sortDownloads);
-            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+            toolBar.add(buttons, BorderLayout.WEST);
 
-            toolBar.add(removeAllDownloads);
-            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+            JPanel searchPanel = new JPanel(new BorderLayout());
+            JPanel searchButtonPanel = new JPanel(new BorderLayout());
+            searchButtonPanel.setOpaque(true);
+            searchButtonPanel.setBackground(new Color(208,223,248));
+            searchButtonPanel.add(searchButton, BorderLayout.EAST);
+            searchButtonPanel.add(search, BorderLayout.CENTER);
 
-            toolBar.add(settings);
+            searchPanel.setOpaque(true);
+            searchPanel.setBackground(new Color(208,223,248));
+            searchPanel.add(searchButtonPanel, BorderLayout.CENTER);
+            //toolBar.add(search, BorderLayout.CENTER);
+            //toolBar.add(searchButton, BorderLayout.EAST);
+            toolBar.add(searchPanel, BorderLayout.CENTER);
+
+//            toolBar.setOpaque(true);
+//            toolBar.setBackground(new Color(208, 223, 248));
+//            toolBar.setBorderPainted(false);
+//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+//
+//            toolBar.setOpaque(true);
+//            toolBar.add(addNewDownload);
+//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+//
+//            toolBar.add(pauseAllDownloads);
+//            toolBar.add(resumeAllDownloads);
+//            toolBar.add(cancelAllDownloads);
+//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+//
+//            toolBar.add(sortDownloads);
+//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+//
+//            toolBar.add(removeAllDownloads);
+//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+//
+//            toolBar.add(settings);
+//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
+//
+//            toolBar.add(search);
+//            toolBar.add(searchButton);
     }
 
     public JToolBar getToolBar() {

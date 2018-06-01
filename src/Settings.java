@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Settings implements Serializable{
 
@@ -16,6 +17,7 @@ public class Settings implements Serializable{
     private Integer maximumSynchronicDownloads;
     private String[] lAndFs;
     private String[] lAndFNames;
+    private ArrayList<String> filteredSites;
 
     public Settings() {
         lAndFs = new String[] {UIManager.getSystemLookAndFeelClassName(), "javax.swing.plaf.nimbus.NimbusLookAndFeel", "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"};
@@ -24,6 +26,7 @@ public class Settings implements Serializable{
         synchronicDownloadsLimited = false;
         lookAndFeel = lAndFs[0];
         saveToPath = System.getProperty("user.home") + "\\Desktop";
+        filteredSites = new ArrayList<String>();
     }
 
     public JFrame makeSettingsFrame() {
@@ -31,7 +34,7 @@ public class Settings implements Serializable{
         settingsFrame.setIconImage(new ImageIcon("src/icons/settings.png").getImage());
         settingsFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         //settingsFrame.setResizable(false);
-        settingsFrame.setSize(700,650);
+        settingsFrame.setSize(800,650);
         settingsFrame.setLocationRelativeTo(GUI.getFrame());
         settingsFrame.add(makeMainPanel());
         return settingsFrame;
@@ -168,6 +171,26 @@ public class Settings implements Serializable{
         lookAndFeelPanel.add(label, BorderLayout.WEST);
         lookAndFeelPanel.add(comboPanel, BorderLayout.CENTER);
 
+        JPanel filterPanel = new JPanel(new BorderLayout());
+        filterPanel.setBorder(BorderFactory.createTitledBorder("Filtered Sites"));
+        filterPanel.setOpaque(true);
+
+        JPanel filter = new JPanel(new BorderLayout());
+        filter.setBorder(border);
+        filter.setOpaque(true);
+
+        JTextArea sites = new JTextArea();
+        sites.setRows(5);
+        sites.setEditable(true);
+        for (String string: filteredSites) {
+            sites.append(string + "\n");
+        }
+        sites.setToolTipText("Enter each site in a seperate line");
+
+        filter.add(sites, BorderLayout.CENTER);
+
+        filterPanel.add(filter, BorderLayout.CENTER);
+
         JButton ok = new JButton("OK");
         ok.setOpaque(true);
 
@@ -202,8 +225,16 @@ public class Settings implements Serializable{
         settingsPanel.add(panel, BorderLayout.NORTH);
         settingsPanel.add(lookAndFeelPanel, BorderLayout.CENTER);
 
-        main.add(settingsPanel, BorderLayout.NORTH);
+
+        JPanel sets = new JPanel(new BorderLayout());
+        sets.setOpaque(true);
+        sets.setBorder(border);
+        sets.add(settingsPanel, BorderLayout.NORTH);
+        sets.add(filterPanel, BorderLayout.CENTER);
+
+        main.add(sets, BorderLayout.NORTH);
         main.add(buttonsPanel, BorderLayout.SOUTH);
+
         JScrollPane pane = new JScrollPane(main);
         //main.add(pane, BorderLayout.CENTER);
 
@@ -235,6 +266,10 @@ public class Settings implements Serializable{
                     SwingUtilities.updateComponentTreeUI(settingsFrame);
                     //settingsFrame.dispatchEvent(new WindowEvent(GUI.getFrame(), WindowEvent.WINDOW_CLOSING));
                 }
+
+                filteredSites.clear();
+                for (String line : sites.getText().split("\\n")) filteredSites.add(line);
+
             }
         });
 
@@ -259,6 +294,8 @@ public class Settings implements Serializable{
                     SwingUtilities.updateComponentTreeUI(GUI.getFrame());
 
                 }
+                filteredSites.clear();
+                for (String line : sites.getText().split("\\n")) filteredSites.add(line);
             }
         });
 
