@@ -2,16 +2,28 @@
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -117,33 +129,66 @@ public class GUI {
 
         JLabel fileIcon = new JLabel();
         fileIcon.setOpaque(true);
-        String clipboard;
-//        try {
-//            clipboard = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-//            try {
-//                URL test = new URL(clipboard);
-//                link.setText(clipboard);
-//                fileName.setText(Network.generateFileName(new URL(clipboard)));
-//
-//            } catch (MalformedURLException e) {
-//            }
-//
-//        } catch (UnsupportedFlavorException e) {
-//        } catch (IOException e) {
-//        }
+        String clipboard = "";
+        try {
+            clipboard = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+            try {
+                URL test = new URL(clipboard);
+                link.setText(clipboard);
+
+                fileName.setText(Download.validName(test.getFile().substring(Math.max(test.getFile().lastIndexOf("/"), test.getFile().lastIndexOf("=")) + 1, test.getFile().length())));
+
+            } catch (MalformedURLException e) {
+            }
+
+        } catch (UnsupportedFlavorException e) {
+        } catch (IOException e) {
+        }
 
         //fileIcon.setBackground(BACKGROUND_COLOR);
         fileIcon.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
-        fileIcon.setIcon(new ImageIcon("src/icons/exe.jpg"));
+        //fileIcon.setIcon(new ImageIcon("src/icons/exe.jpg"));
 
+
+        Download dl = new Download(fileName.getText(), clipboard);
+        String path = "src/icons/files/file" + dl.fileFormat();
+        try {
+
+            PrintWriter writer = null;
+            try {
+                writer = new PrintWriter(path);
+            } catch (FileNotFoundException e) {
+            }
+            File file = new File(path);
+            Icon icon1;
+            try {
+                icon1 = FileSystemView.getFileSystemView().getSystemIcon(file);
+            } catch (InvalidPathException e) {
+                icon1 = new ImageIcon("src/icons/files/file.bin");
+            }
+
+            fileIcon.setIcon(new ImageIcon(getScaledImage(DownloadEntry.icon2image(icon1), 20, 20)));
+
+            writer.close();
+            file.delete();
+
+        } catch (NullPointerException e) {
+        }
 
         ButtonGroup downloadOptions = new ButtonGroup();
 
         JRadioButton auto = new JRadioButton("Automatically");
-        auto.setSelected(true);
         JRadioButton manual = new JRadioButton("Manually");
         JPanel queuesPanel = new JPanel(new BorderLayout());
         JRadioButton queue = new JRadioButton("Queue");
+
+        if (getList().getMode().equals(DownloadsList.state.Queue)) {
+            queue.setSelected(true);
+        }
+        else {
+            auto.setSelected(true);
+        }
+
         //JComboBox queues = new JComboBox();
 
         //queues.setPrototypeDisplayValue("...............");
@@ -193,27 +238,6 @@ public class GUI {
         addDownloadFrame.setResizable(false);
         addDownloadFrame.add(addDownloadMainPanel);
 
-        auto.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //queues.setEnabled(false);
-            }
-        });
-
-        manual.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //queues.setEnabled(false);
-            }
-        });
-
-        queue.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //queues.setEnabled(true);
-            }
-        });
-
         cancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -226,47 +250,47 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 String url = link.getText();
                 String name = fileName.getText();
-
-                //try {
-                    //URL url1 = new URL(url);
-                    Download download = new Download(name, url);
-                    if (name.equals("")) {
-                        JOptionPane.showMessageDialog(addDownloadMainPanel, "File name shouldn't be empty.");
-                    } else {
-                        Download.status status;
-                        if (auto.isSelected()) {
-                            status = Download.status.Downloading;
-                        } else {
-                            status = Download.status.Paused;
-                            if (queue.isSelected()) {
-                                DownloadManager.getQueue().addDownloadToList(download);
-                            }
-                        }
-                        if (DownloadManager.getSettings().isSynchronicDownloadsLimited() && DownloadManager.getInProgressDownloads() >= DownloadManager.getSettings().getMaximumSynchronicDownloads() && status.equals(Download.status.Downloading)) {
-                            download.setState(Download.status.Paused);
-                            JOptionPane.showMessageDialog(frame, "Download status was automatically set to paused, due to maximum synchronic downloads limit.", "Message",1);
-                        }
-                        else {
-                            download.setState(status);
-                        }
-                        download.setCreationTime(Calendar.getInstance().getTime());
-                        int size = new Random().nextInt(1000000000);
-                        int downloaded = new Random().nextInt(size);
-                        //int size = Network.getFileSize(url1);
-                        //if (size != -1) {
-                            download.setSizeInBytes(size);
-                            download.setDownloadedBytes(downloaded);
-                        //} else {
-                            //JOptionPane.showMessageDialog(addDownloadMainPanel, "Error");
-                        //}
-
-                        if (! queue.isSelected()) {DownloadManager.getProccessing().addDownloadToList(download);}
-
+                for (String filter: DownloadManager.getSettings().getFilteredSites()) {
+                    if(DownloadManager.isOneSubdomainOfTheOther(url,filter)) {
                         addDownloadFrame.dispatchEvent(new WindowEvent(addDownloadFrame, WindowEvent.WINDOW_CLOSING));
+                        JOptionPane.showMessageDialog(GUI.getFrame(), "This website is blocked", "Error", 0);
+                        return;
                     }
-                //} catch (MalformedURLException e1) {
-                  //  JOptionPane.showMessageDialog(addDownloadMainPanel, "The URL is not valid.");
-                //}
+                }
+
+                Download download = new Download(name, url);
+                if (name.equals("")) {
+                    JOptionPane.showMessageDialog(addDownloadMainPanel, "File name shouldn't be empty.");
+                } else {
+                    Download.status status = Download.status.Paused;
+                    if (auto.isSelected()) {
+                        status = Download.status.Downloading;
+                    } else {
+                        if (manual.isSelected()) {
+                            status = Download.status.Paused;
+                        }
+                        if (queue.isSelected()) {
+                            status = Download.status.InQueue;
+                        }
+                    }
+                    if (DownloadManager.getSettings().isSynchronicDownloadsLimited() && DownloadManager.getInProgressDownloads() >= DownloadManager.getSettings().getMaximumSynchronicDownloads() && status.equals(Download.status.Downloading)) {
+                        download.setState(Download.status.Paused);
+                        JOptionPane.showMessageDialog(frame, "Download status was automatically set to paused, due to maximum synchronic downloads limit.", "Message", 1);
+                    } else {
+                        download.setState(status);
+                    }
+                    if (queue.isSelected()) {
+                        DownloadManager.getQueue().addDownloadToList(download);
+                    } else {
+                        DownloadManager.getProccessing().addDownloadToList(download);
+                    }
+                    DownloadManager.updateUI();
+                    download.setCreationTime(Calendar.getInstance().getTime());
+                    addDownloadFrame.dispatchEvent(new WindowEvent(addDownloadFrame, WindowEvent.WINDOW_CLOSING));
+                    if (download.getState() == Download.status.Downloading) {
+                        download.start();
+                    }
+                }
             }
         });
 
@@ -363,16 +387,27 @@ public class GUI {
             label.setBackground(Color.BLACK);
 
             if (((JLabel) e.getSource()).getName().equals("proccessing")) {
+                toolbar.setEnabledButtons(4);
                 setList(DownloadManager.getProccessing());
                 DownloadManager.setState(DownloadsList.state.Processing);
             }
             if (((JLabel) e.getSource()).getName().equals("completed")) {
+                toolbar.setEnabledButtons(5);
                 setList(DownloadManager.getCompleted());
                 DownloadManager.setState(DownloadsList.state.Completed);
             }
-            if (((JLabel) e.getSource()).getName().equals("queue")) {
+            if (((JLabel) e.getSource()).getName().equals("queue") && e.getClickCount() == 1) {
+                if (DownloadManager.getQueue().getModel().size() > 0) {
+                    toolbar.setEnabledButtons(-1);
+                }
+                else {
+                    toolbar.setEnabledButtons(-2);
+                }
                 DownloadManager.setState(DownloadsList.state.Queue);
                 setList(DownloadManager.getQueue());
+            }
+            if (((JLabel) e.getSource()).getName().equals("queue") && e.getClickCount() == 2) {
+                makeQueueFrame().setVisible(true);
             }
 
         }
@@ -401,6 +436,247 @@ public class GUI {
             if (!categoriesClicked.get(label)) {
                 label.setBackground(LEFT_SIDE_BACK_COLOR);
             }
+        }
+    }
+
+    private static JFrame makeQueueFrame() {
+        JFrame qFrame = new JFrame("Queue");
+        qFrame.setIconImage(new ImageIcon("src/icons/queue icon.png").getImage());
+        qFrame.setSize(500, 500);
+        qFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        Border border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+
+        JPanel main = new JPanel(new BorderLayout());
+        main.setOpaque(true);
+        main.setBorder(border);
+        main.setBackground(GUI.TOOLBAR_COLOR);
+
+        JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
+
+        toolBar.setLayout(new BorderLayout());
+        toolBar.setBackground(GUI.TOOLBAR_COLOR);
+        toolBar.setBorder(BorderFactory.createEmptyBorder(2, 2, 5, 0));
+        toolBar.setFloatable(false);
+
+
+        JPanel buttonsLayout = new JPanel(new GridLayout(1, 3, 5, 5));
+        buttonsLayout.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        buttonsLayout.setBackground(TOOLBAR_COLOR);
+
+        JLabel moveUp = new JLabel();
+        moveUp.setOpaque(true);
+        moveUp.setName("up");
+        moveUp.setToolTipText("Move up");
+        moveUp.setEnabled(false);
+        moveUp.setBackground(TOOLBAR_COLOR);
+        moveUp.setIcon(new ImageIcon("src/icons/up.png"));
+        moveUp.addMouseListener(new hoverHandler());
+        //moveUp.setBorder(border);
+
+        JLabel moveDown = new JLabel();
+        moveDown.setOpaque(true);
+        moveDown.setName("down");
+        moveDown.setToolTipText("Move down");
+        moveDown.setEnabled(false);
+        moveDown.setBackground(TOOLBAR_COLOR);
+        moveDown.setIcon(new ImageIcon("src/icons/down.png"));
+        moveDown.addMouseListener(new hoverHandler());
+        //moveDown.setBorder(border);
+
+        JLabel remove = new JLabel();
+        remove.setOpaque(true);
+        remove.setName("remove queue");
+        remove.setToolTipText("Remove from queue and add to processing downloads");
+        remove.setEnabled(false);
+        remove.setBackground(TOOLBAR_COLOR);
+        remove.setIcon(new ImageIcon("src/icons/remove queue.png"));
+        remove.addMouseListener(new hoverHandler());
+
+//        DateTimePicker picker = new DateTimePicker();
+//        picker.setFormats( DateFormat.getDateTimeInstance( DateFormat.SHORT, DateFormat.MEDIUM ) );
+//        picker.setTimeFormat( DateFormat.getTimeInstance( DateFormat.MEDIUM ) );
+
+
+        JPanel pickerPanel = new JPanel(new BorderLayout());
+        pickerPanel.setOpaque(true);
+        pickerPanel.setBackground(GUI.TOOLBAR_COLOR);
+//        pickerPanel.add(picker, BorderLayout.WEST);
+
+        buttonsLayout.add(moveDown);
+        buttonsLayout.add(moveUp);
+        buttonsLayout.add(remove);
+
+        JPanel okPanel = new JPanel(new BorderLayout());
+        okPanel.setOpaque(true);
+        okPanel.setBackground(GUI.TOOLBAR_COLOR);
+        okPanel.setBorder(BorderFactory.createEmptyBorder(1, 0, 1, 0));
+
+        JButton ok = new JButton("OK");
+        ok.setOpaque(true);
+
+        JPanel cancelPanel = new JPanel(new BorderLayout());
+        cancelPanel.setOpaque(true);
+        cancelPanel.setBackground(GUI.TOOLBAR_COLOR);
+        cancelPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 2));
+
+        JButton cancel = new JButton("Cancel");
+        cancel.setOpaque(true);
+
+        okPanel.add(ok, BorderLayout.EAST);
+        cancelPanel.add(cancel, BorderLayout.EAST);
+
+        okPanel.add(cancelPanel, BorderLayout.CENTER);
+
+        toolBar.add(buttonsLayout, BorderLayout.WEST);
+
+        toolBar.add(pickerPanel, BorderLayout.EAST);
+        //toolBar.add(okPanel, BorderLayout.EAST);
+
+        main.add(toolBar, BorderLayout.NORTH);
+        main.add(okPanel, BorderLayout.SOUTH);
+
+        DownloadsList list = new DownloadsList(DownloadsList.state.Queue);
+        DefaultListModel model = new DefaultListModel();
+        for (int i = 0; i < DownloadManager.getQueue().getModel().size(); i++) {
+            model.addElement(DownloadManager.getQueue().getModel().getElementAt(i));
+        }
+        list.setModel(model);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setStartTime(DownloadManager.getQueue().getStartTime());
+//        picker.setDate(list.getStartTime());
+
+        JScrollPane qPane = new JScrollPane(list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        qPane.setBorder(border);
+        qPane.setBackground(GUI.BACKGROUND_COLOR);
+        main.add(qPane, BorderLayout.CENTER);
+
+        qFrame.add(main);
+
+        list.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (list.isSelectionEmpty()) {
+                    moveDown.setEnabled(false);
+                    moveUp.setEnabled(false);
+                    remove.setEnabled(false);
+                } else {
+                    remove.setEnabled(true);
+                    int index = list.getSelectedIndex();
+                    if (index < list.getModel().size() - 1) {
+                        moveDown.setEnabled(true);
+                    } else {
+                        moveDown.setEnabled(false);
+                    }
+                    if (index >= 1) {
+                        moveUp.setEnabled(true);
+                    } else {
+                        moveUp.setEnabled(false);
+                    }
+                }
+            }
+        });
+
+        moveUp.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (moveUp.isEnabled()) {
+                    int index = list.getSelectedIndex();
+                    DownloadEntry temp = (DownloadEntry) model.getElementAt(index - 1);
+                    model.set(index - 1, model.getElementAt(index));
+                    model.set(index, temp);
+                    list.setModel(model);
+                    list.setSelectedIndex(index - 1);
+                }
+            }
+        });
+
+        moveDown.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (moveDown.isEnabled()) {
+                    int index = list.getSelectedIndex();
+                    DownloadEntry temp = (DownloadEntry) model.getElementAt(index + 1);
+                    model.set(index + 1, model.getElementAt(index));
+                    model.set(index, temp);
+                    list.setModel(model);
+                    list.setSelectedIndex(index + 1);
+                }
+            }
+        });
+
+        remove.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (remove.isEnabled()) {
+                    int value = JOptionPane.showConfirmDialog(qFrame, "Are you sure you want to delete this item from queue?", "Warning", 0, 0);
+                    if (value != 0) {
+                        return;
+                    }
+                    DownloadManager.getProccessing().addDownloadToList(list.getSelectedValue().getDownload());
+                    model.remove(list.getSelectedIndex());
+                }
+            }
+        });
+
+        cancel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                qFrame.dispatchEvent(new WindowEvent(qFrame, WindowEvent.WINDOW_CLOSING));
+
+            }
+        });
+
+        ok.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+//                picker.commitTime();
+//                System.out.println(picker.getDate());
+                qFrame.dispatchEvent(new WindowEvent(qFrame, WindowEvent.WINDOW_CLOSING));
+                DownloadManager.getQueue().setModel(model);
+                setList(DownloadManager.getQueue());
+            }
+        });
+
+        return qFrame;
+    }
+
+    private static class hoverHandler extends MouseAdapter {
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            JLabel label = (JLabel) e.getSource();
+            if (label.isEnabled()) {
+                label.setIcon(new ImageIcon("src/icons/" + label.getName() + "_hovered.png"));
+            }
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            JLabel label = (JLabel) e.getSource();
+            if (label.isEnabled()) {
+                label.setIcon(new ImageIcon("src/icons/" + label.getName() + ".png"));
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            JLabel label = (JLabel) e.getSource();
+            if (label.isEnabled()) {
+                label.setIcon(new ImageIcon("src/icons/" + label.getName() + "_pressed.png"));
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            JLabel label = (JLabel) e.getSource();
+            if (label.isEnabled()) {
+                label.setIcon(new ImageIcon("src/icons/" + label.getName() + ".png"));
+            }
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            super.mouseClicked(e);
         }
     }
 
@@ -438,10 +714,18 @@ public class GUI {
     }
 
     private static DownloadsList getList(DownloadsList.state mode) {
-        if (mode == DownloadsList.state.Completed) {return DownloadManager.getCompleted();}
-        if (mode == DownloadsList.state.Processing) {return DownloadManager.getProccessing();}
-        if (mode == DownloadsList.state.Queue) {return DownloadManager.getQueue();}
-        if (mode == DownloadsList.state.Removed) {return DownloadManager.getRemoved();}
+        if (mode == DownloadsList.state.Completed) {
+            return DownloadManager.getCompleted();
+        }
+        if (mode == DownloadsList.state.Processing) {
+            return DownloadManager.getProccessing();
+        }
+        if (mode == DownloadsList.state.Queue) {
+            return DownloadManager.getQueue();
+        }
+        if (mode == DownloadsList.state.Removed) {
+            return DownloadManager.getRemoved();
+        }
 
         return null;
     }
@@ -450,15 +734,21 @@ public class GUI {
         DownloadsList.state mode = downloadsList.getMode();
         if (mode == DownloadsList.state.Processing) {
             list.setModel(DownloadManager.getProccessing().getModel());
+            list.setMode(DownloadsList.state.Processing);
+            list.setCellRenderer(new DownloadEntryRenderer(DownloadsList.state.Processing));
         }
         if (mode == DownloadsList.state.Completed) {
             list.setModel(DownloadManager.getCompleted().getModel());
+            list.setMode(DownloadsList.state.Completed);
+            list.setCellRenderer(new DownloadEntryRenderer(DownloadsList.state.Completed));
         }
         if (mode == DownloadsList.state.Removed) {
             list.setModel(DownloadManager.getRemoved().getModel());
         }
         if (mode == DownloadsList.state.Queue) {
             list.setModel(DownloadManager.getQueue().getModel());
+            list.setMode(DownloadsList.state.Queue);
+            list.setCellRenderer(new DownloadEntryRenderer(DownloadsList.state.Queue));
         }
         if (mode == DownloadsList.state.SearchResult) {
             list.setModel(downloadsList.getModel());
@@ -497,11 +787,11 @@ public class GUI {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         JTextArea area = new JTextArea();
-        area.setFont(new Font("Arial", 14,14));
+        area.setFont(new Font("Arial", 14, 14));
         area.setBackground(BACKGROUND_COLOR);
         area.setEditable(false);
         area.setText("This software is developed by:" + '\n' + "Mohammadhossein Naderi 9631815" + '\n' + "Email:    mhnaderi99@gmail.com" + '\n' + "Phone:      +989383444200" +
-                '\n' + "This is a simple download manager." + '\n' +"By using JDM you can easily manage your downloads." + '\n' + "12/5/2018 - 19/5/2018");
+                '\n' + "This is a simple download manager." + '\n' + "By using JDM you can easily manage your downloads." + '\n' + "12/5/2018 - 19/5/2018");
         panel.add(area, BorderLayout.CENTER);
         about.add(panel);
 

@@ -320,6 +320,10 @@ public class Settings implements Serializable{
     }
 
 
+    public ArrayList<String> getFilteredSites() {
+        return filteredSites;
+    }
+
     @Override
     public String toString() {
         return synchronicDownloadsLimited + ", " + maximumSynchronicDownloads + ", " + saveToPath + ", " + lookAndFeel;

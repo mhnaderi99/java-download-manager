@@ -7,7 +7,7 @@ import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, Serializable{
+public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, Serializable {
 
     private DownloadsList.state mode;
 
@@ -18,11 +18,14 @@ public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, S
     @Override
     public Component getListCellRendererComponent(JList<? extends DownloadEntry> list, DownloadEntry value, int index, boolean isSelected, boolean cellHasFocus) {
 
-        JPanel panel = value.getPanel();
+        JPanel panel = null;
+
+        panel = value.getPanel(mode);
         panel.setOpaque(true);
         if (isSelected) {
             colorWholeContainer(panel, GUI.LEFT_SIDE_BACK_COLOR, GUI.TOOLBAR_COLOR);
         }
+
 
         return panel;
     }
@@ -33,14 +36,19 @@ public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, S
 
         ArrayList<Component> components = GUI.getAllComponents(container);
 
-        for (Component component: components) {
+        for (Component component : components) {
             component.setBackground(backColor);
             component.setForeground(foreColor);
             if (component instanceof JProgressBar) {
                 JProgressBar bar = (JProgressBar) component;
                 bar.setUI(new BasicProgressBarUI() {
-                    protected Color getSelectionBackground() { return foreColor; }
-                    protected Color getSelectionForeground() { return backColor; }
+                    protected Color getSelectionBackground() {
+                        return foreColor;
+                    }
+
+                    protected Color getSelectionForeground() {
+                        return backColor;
+                    }
                 });
             }
         }

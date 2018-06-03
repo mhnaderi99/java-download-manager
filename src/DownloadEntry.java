@@ -1,13 +1,19 @@
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.nio.file.InvalidPathException;
 
 /**
  * Created by 9631815 on 5/12/2018.
@@ -29,6 +35,7 @@ public class DownloadEntry implements Serializable{
     private transient JLabel open;
     private transient JLabel cancel;
     private transient JLabel speed;
+    private transient JLabel timeRemaining;
 
     private transient JProgressBar progressBar;
 
@@ -40,11 +47,27 @@ public class DownloadEntry implements Serializable{
         return download;
     }
 
-    public JPanel getPanel() {
+    public JPanel getPanel(DownloadsList.state mode) {
 
         int sizeInBytes = download.getSizeInBytes();
         int downloadedBytes = download.getDownloadedBytes();
-        String progressText = download.getProgress();
+        String progressText;
+        if (mode != DownloadsList.state.Completed) {
+            progressText = download.getProgress();
+        }
+        else {
+            progressText = Download.makePrefix(download.getSizeInBytes());
+        }
+        String time = "";
+        if (download.getState() == Download.status.Downloading) {
+            time = "n/a";
+            if (download.estimatedTimeRemaining() != null) {
+                time = download.estimatedTimeRemaining().toString();
+            }
+        }
+        else if (download.getState() == Download.status.Paused){
+            time = "";
+        }
 
         //Color empty = new Color(230,230,230), full = new Color(20,150,70);
 
@@ -75,14 +98,35 @@ public class DownloadEntry implements Serializable{
         icon.setBackground(GUI.BACKGROUND_COLOR);
         //Icon ico = javax.swing.filechooser.FileSystemView.getFileSystemView().getSystemIcon(new File("src/icons/files/file." + download.fileFormat()));
         //icon.setIcon(ico);
-        icon.setIcon(new ImageIcon(GUI.getScaledImage(new ImageIcon("src/icons/icon.png").getImage(),30,30)));
+        //icon.setIcon(new ImageIcon(GUI.getScaledImage(new ImageIcon("src/icons/icon.png").getImage(),30,30)));
         iconPanel.add(icon, BorderLayout.CENTER);
 
+        String path = "src/icons/files/file" + download.fileFormat();
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(path);
+        }
+        catch (FileNotFoundException e) { }
+        File file = new File(path);
+        Icon icon1;
+        try {
+            icon1 = FileSystemView.getFileSystemView().getSystemIcon(file);
+        }
+        catch (InvalidPathException e) {
+            icon1 = new ImageIcon("src/icons/files/file.bin");
+        }
+
+        icon.setIcon(new ImageIcon(GUI.getScaledImage(icon2image(icon1), 30,30)));
+        writer.close();
+        file.delete();
+
         progress = new JLabel(progressText);
-        progress.setFont(new Font("Arial", Font.BOLD, 12));
+        progress.setFont(new Font("Arial", Font.PLAIN, 12));
         progress.setForeground(GUI.LEFT_SIDE_BACK_COLOR_PRESSED);
         progress.setOpaque(true);
         progress.setBackground(GUI.BACKGROUND_COLOR);
+
+
 
         titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBorder(BorderFactory.createEmptyBorder(1,0,0,0));
@@ -90,10 +134,10 @@ public class DownloadEntry implements Serializable{
         title = new JLabel(download.getName());
         title.setOpaque(true);
         title.setBackground(GUI.BACKGROUND_COLOR);
-        title.setFont(new Font("Arial", Font.BOLD,14));
+        title.setFont(new Font("Arial", Font.HANGING_BASELINE,14));
         titlePanel.add(title, BorderLayout.CENTER);
 
-        resume = new JLabel("");
+        resume = new JLabel("R");
         resume.setOpaque(true);
         resume.setBackground(GUI.BACKGROUND_COLOR);
         //resume.setBorderPainted(false);
@@ -105,7 +149,7 @@ public class DownloadEntry implements Serializable{
 
 
 
-        open = new JLabel("");
+        open = new JLabel("O");
         open.setOpaque(true);
         open.setBackground(GUI.BACKGROUND_COLOR);
         //open.setBorderPainted(false);
@@ -113,7 +157,7 @@ public class DownloadEntry implements Serializable{
         open.setIcon(new ImageIcon("src/icons/folder.png"));
         open.setBorder(BorderFactory.createEmptyBorder(0,6,0,8));
 
-        cancel = new JLabel("");
+        cancel = new JLabel("C");
         cancel.setIcon(new ImageIcon("src/icons/cross.png"));
         cancel.setOpaque(true);
         cancel.setBackground(GUI.BACKGROUND_COLOR);
@@ -121,15 +165,38 @@ public class DownloadEntry implements Serializable{
         cancel.setBorder(BorderFactory.createEmptyBorder(0,8,0,0));
 
         speed = new JLabel(download.getSpeed());
+        setFixedSize(speed,100,20);
         if (download.getState().equals(Download.status.Paused)) {
-            speed.setText("paused");
+            speed.setText("Paused");
+        }
+        if (download.getState().equals(Download.status.InQueue)) {
+            speed.setText("In queue");
         }
         if (download.getState().equals(Download.status.Cancelled)) {
-            speed.setText("cancelled");
+            speed.setText("Cancelled");
         }
-        speed.setFont(new Font("Arial", Font.CENTER_BASELINE, 12));
+        if (mode == DownloadsList.state.Completed) {
+            speed.setText("Downloaded");
+        }
+        speed.setFont(new Font("Arial", Font.PLAIN, 12));
         speed.setForeground(GUI.LEFT_SIDE_BACK_COLOR_PRESSED);
         speed.setIcon(new ImageIcon("src/icons/speed.png"));
+
+        timeRemaining = new JLabel(time);
+        if (mode == DownloadsList.state.Completed) {
+            timeRemaining.setText(download.getFinishTime().toString());
+        }
+        timeRemaining.setFont(new Font("Arial", Font.PLAIN, 12));
+        timeRemaining.setForeground(GUI.LEFT_SIDE_BACK_COLOR_PRESSED);
+        timeRemaining.setOpaque(true);
+        timeRemaining.setBackground(GUI.BACKGROUND_COLOR);
+        if (mode != DownloadsList.state.Completed){
+            setFixedSize(timeRemaining, 100,20);
+        }
+        else {
+            setFixedSize(timeRemaining, 200,20);
+        }
+        timeRemaining.setIcon((new ImageIcon("src/icons/time.png")));
 
         content = new JPanel(new GridLayout(3,1,1,1));
         details = new JPanel(new BorderLayout());
@@ -141,18 +208,36 @@ public class DownloadEntry implements Serializable{
         buttons.setOpaque(true);
         buttons.setBackground(GUI.BACKGROUND_COLOR);
 
-        //details.add(buttons, BorderLayout.WEST);
+        //details.add(buttons, BorderLayout.CENTER);
 
 
         details.setOpaque(true);
         details.setBackground(GUI.BACKGROUND_COLOR);
         details.add(speed, BorderLayout.WEST);
+        JPanel info = new JPanel(new BorderLayout());
+        info.setOpaque(true);
+        info.setBackground(GUI.BACKGROUND_COLOR);
+        info.add(timeRemaining, BorderLayout.WEST);
+        details.add(info, BorderLayout.CENTER);
         details.add(progress, BorderLayout.EAST);
 
         content.add(titlePanel);
 
-        content.add(progressBar);
-        content.add(details);
+        if (mode != DownloadsList.state.Completed) {
+            content.add(progressBar);
+            content.add(details);
+        }
+        else {
+            details.setBorder(BorderFactory.createEmptyBorder(0,10,0,0));
+            content.add(details);
+            JPanel p = new JPanel();
+            p.setOpaque(true);
+            p.setBackground(GUI.BACKGROUND_COLOR);
+            p.setBorder(BorderFactory.createEmptyBorder(0,5,0,5));
+            //content.add(p);
+        }
+
+
         content.setOpaque(true);
         content.setBackground(GUI.BACKGROUND_COLOR);
         content.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
@@ -160,6 +245,7 @@ public class DownloadEntry implements Serializable{
         panel = new JPanel(new BorderLayout());
         panel.setOpaque(true);
         panel.add(iconPanel, BorderLayout.WEST);
+
         panel.add(content, BorderLayout.CENTER);
 
         JSeparator separator = new JSeparator(JSeparator.HORIZONTAL);
@@ -276,4 +362,36 @@ public class DownloadEntry implements Serializable{
         return details;
     }
 
+    private void setFixedSize(Component c, int width, int height) {
+        Dimension d = new Dimension(width, height);
+        c.setMinimumSize(d);
+        c.setMaximumSize(d);
+        c.setPreferredSize(d);
+    }
+
+    public static Image icon2image(Icon icon) {
+        if (icon == null) {
+            return null;
+        }
+        if (icon instanceof ImageIcon) {
+            return ((ImageIcon)icon).getImage();
+        } else {
+            int w = icon.getIconWidth();
+            int h = icon.getIconHeight();
+            GraphicsEnvironment ge =
+                    GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsDevice gd = ge.getDefaultScreenDevice();
+            GraphicsConfiguration gc = gd.getDefaultConfiguration();
+            BufferedImage image = gc.createCompatibleImage(w, h);
+            Graphics2D g = image.createGraphics();
+            icon.paintIcon(null, g, 0, 0);
+            g.dispose();
+            return image;
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (download.equals(((DownloadEntry)obj).getDownload()));
+    }
 }

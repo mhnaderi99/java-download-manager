@@ -4,9 +4,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 
 /**
  * Created by 9631815 on 5/12/2018.
@@ -30,11 +27,60 @@ public class Toolbar {
         initiateToolbar();
     }
 
-    public void setEnabledButtons(boolean state) {
-        pauseAllDownloads.setEnabled(state);
-        resumeAllDownloads.setEnabled(state);
-        cancelAllDownloads.setEnabled(state);
-        removeAllDownloads.setEnabled(state);
+    public void setEnabledButtons(int mode) {
+        if (mode == -2) {
+            addNewDownload.setEnabled(true);
+            pauseAllDownloads.setEnabled(false);
+            resumeAllDownloads.setEnabled(false);
+            cancelAllDownloads.setEnabled(false);
+            sortDownloads.setEnabled(false);
+            removeAllDownloads.setEnabled(false);
+        }
+
+        if (mode == -1) {
+            addNewDownload.setEnabled(true);
+            pauseAllDownloads.setEnabled(true);
+            resumeAllDownloads.setEnabled(true);
+            cancelAllDownloads.setEnabled(false);
+            sortDownloads.setEnabled(false);
+            removeAllDownloads.setEnabled(false);
+        }
+
+        if (mode == 1) {
+            addNewDownload.setEnabled(true);
+            pauseAllDownloads.setEnabled(false);
+            resumeAllDownloads.setEnabled(false);
+            cancelAllDownloads.setEnabled(false);
+            removeAllDownloads.setEnabled(false);
+        }
+        if (mode == 2) {
+            addNewDownload.setEnabled(true);
+            pauseAllDownloads.setEnabled(true);
+            resumeAllDownloads.setEnabled(true);
+            cancelAllDownloads.setEnabled(true);
+            removeAllDownloads.setEnabled(true);
+        }
+        if (mode == 3) {
+            addNewDownload.setEnabled(false);
+            pauseAllDownloads.setEnabled(false);
+            resumeAllDownloads.setEnabled(false);
+            removeAllDownloads.setEnabled(true);
+            cancelAllDownloads.setEnabled(false);
+        }
+        if (mode == 4) {
+            addNewDownload.setEnabled(true);
+        }
+        if (mode == 5){
+            addNewDownload.setEnabled(false);
+        }
+        if (mode == 6) {
+            addNewDownload.setEnabled(false);
+            pauseAllDownloads.setEnabled(false);
+            resumeAllDownloads.setEnabled(false);
+            removeAllDownloads.setEnabled(false);
+            cancelAllDownloads.setEnabled(false);
+        }
+
     }
 
     private void initiateButtons() {
@@ -229,16 +275,6 @@ public class Toolbar {
 
             toolBar = new JToolBar("Toolbar", JToolBar.HORIZONTAL);
             toolBar.setBackground(new Color(208,223,248));
-            toolBar.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (DownloadManager.getProccessing().getDownloadEntries().isSelectionEmpty()) {
-                        GUI.getToolbar().setEnabledButtons(false);
-                    } else {
-                        GUI.getToolbar().setEnabledButtons(true);
-                    }
-                }
-            });
             toolBar.setLayout(new BorderLayout());
 
             JPanel buttons = new JPanel(new GridLayout(1,7,0,0));
@@ -269,32 +305,6 @@ public class Toolbar {
             //toolBar.add(search, BorderLayout.CENTER);
             //toolBar.add(searchButton, BorderLayout.EAST);
             toolBar.add(searchPanel, BorderLayout.CENTER);
-
-//            toolBar.setOpaque(true);
-//            toolBar.setBackground(new Color(208, 223, 248));
-//            toolBar.setBorderPainted(false);
-//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
-//
-//            toolBar.setOpaque(true);
-//            toolBar.add(addNewDownload);
-//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
-//
-//            toolBar.add(pauseAllDownloads);
-//            toolBar.add(resumeAllDownloads);
-//            toolBar.add(cancelAllDownloads);
-//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
-//
-//            toolBar.add(sortDownloads);
-//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
-//
-//            toolBar.add(removeAllDownloads);
-//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
-//
-//            toolBar.add(settings);
-//            toolBar.add(new JSeparator(JSeparator.VERTICAL));
-//
-//            toolBar.add(search);
-//            toolBar.add(searchButton);
     }
 
     public JToolBar getToolBar() {

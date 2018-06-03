@@ -18,18 +18,28 @@ public class EventHandler implements ActionListener {
             GUI.makeAddDownloadFrame().setVisible(true);
         }
         if (key.equals("pause")) {
-            DownloadManager.pauseDownloads();
-            if (e.getSource() instanceof JButton){
-                GUI.getToolbar().setEnabledButtons(false);
+            if (GUI.getList().getMode().equals(DownloadsList.state.Queue)) {
+                if (DownloadManager.getQueue().getRunning()){
+                    DownloadManager.pauseQueue();
+                    DownloadManager.getQueue().setRunning(false);
+                }
+            }
+            else {
+                DownloadManager.pauseDownloads();
             }
         }
         if (key.equals("pause all")) {
             DownloadManager.pauseAllDownloads();
         }
         if (key.equals("resume")) {
-            DownloadManager.resumeDownloads();
-            if (e.getSource() instanceof JButton){
-                GUI.getToolbar().setEnabledButtons(false);
+            if (GUI.getList().getMode().equals(DownloadsList.state.Queue)) {
+                if (! DownloadManager.getQueue().getRunning()){
+                    DownloadManager.startQueue();
+                    DownloadManager.getQueue().setRunning(true);
+                }
+            }
+            else {
+                DownloadManager.resumeDownloads();
             }
         }
         if (key.equals("resume all")) {
@@ -38,7 +48,6 @@ public class EventHandler implements ActionListener {
         if (key.equals("cancel")) {
             DownloadManager.cancelDownloads();
             if (e.getSource() instanceof JButton){
-                GUI.getToolbar().setEnabledButtons(false);
             }
         }
         if (key.equals("cancel all")) {
@@ -47,6 +56,9 @@ public class EventHandler implements ActionListener {
         if (key.equals("sort")) {
             GUI.makeSortFrame().setVisible(true);
         }
+        if (key.equals("export")) {
+            DownloadManager.export();
+        }
         if (key.equals("remove")) {
             DownloadManager.removeDownloads();
         }
@@ -54,12 +66,7 @@ public class EventHandler implements ActionListener {
             DownloadManager.getSettings().makeSettingsFrame().setVisible(true);
         }
         if (key.equals("exit")){
-            SerializationHandler.saveSettings();
-            SerializationHandler.saveProcessing();
-            SerializationHandler.saveQueue();
-            SerializationHandler.saveCompleted();
-            SerializationHandler.saveRemoved();
-            System.exit(0);
+            DownloadManager.exit();
         }
         if (key.equals("about")) {
             GUI.makeAboutFrame().setVisible(true);

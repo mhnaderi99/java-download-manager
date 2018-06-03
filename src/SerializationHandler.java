@@ -11,6 +11,8 @@ public class SerializationHandler {
             FileInputStream fis = new FileInputStream(path);
             ObjectInputStream ois = new ObjectInputStream(fis);
             ArrayList<T> list = (ArrayList<T>) ois.readObject();
+            ois.close();
+            fis.close();
             return list;
         }
         catch (FileNotFoundException e) { }
@@ -26,6 +28,8 @@ public class SerializationHandler {
             fos = new FileOutputStream(path);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(list);
+            oos.close();;
+            fos.close();
         }
         catch (FileNotFoundException e) { }
         catch (IOException e) { }

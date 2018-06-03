@@ -14,6 +14,7 @@ public class MenuBar {
     private JMenuItem pauseAllDownloads;
     private JMenuItem resumeAllDownloads;
     private JMenuItem sortDownloads;
+    private JMenuItem export;
     private JMenuItem settings;
     private JMenuItem exit;
     private JMenuItem about;
@@ -51,6 +52,11 @@ public class MenuBar {
         sortDownloads.setName("sort");
         sortDownloads.addActionListener(handler);
 
+        export = new JMenuItem("Export", KeyEvent.VK_X);
+        export.setAccelerator(KeyStroke.getKeyStroke("control U"));
+        export.setName("export");
+        export.addActionListener(handler);
+
         settings = new JMenuItem("Settings", KeyEvent.VK_S);
         settings.setAccelerator(KeyStroke.getKeyStroke("control S"));
         settings.setName("settings");
@@ -73,6 +79,7 @@ public class MenuBar {
         download.add(new JSeparator());
         download.add(sortDownloads);
         download.add(new JSeparator());
+        download.add(export);
         download.add(settings);
         download.add(new JSeparator());
         download.add(exit);

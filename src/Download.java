@@ -1,7 +1,9 @@
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.sql.Time;
 import java.util.*;
 
 
@@ -11,9 +13,10 @@ import java.util.*;
 public class Download implements Serializable{
 
     public enum status implements Serializable{
-        Downloading, Paused, Cancelled, Finished
+        Downloading, Paused, Cancelled, Finished, InQueue;
     }
 
+    private transient Downloader downloader;
     private String name;
     private String link;
     private status state;
@@ -23,6 +26,7 @@ public class Download implements Serializable{
     private Date creationTime;
     private Date finishTime;
     private String saveTo;
+    private Boolean isStarted;
 
 
     public Download(String name, String link){
@@ -30,10 +34,24 @@ public class Download implements Serializable{
         downloadedBytes = 0;
         bytesPerSecond = 0;
         saveTo = DownloadManager.getSettings().getSaveToPath();
-        this.name = name;
+        this.name = validName(name);
         this.link = link;
         state = status.Downloading;
         creationTime = Calendar.getInstance().getTime();
+        downloader = new Downloader(this);
+        isStarted = false;
+    }
+
+    public Downloader getDownloader() {
+        return downloader;
+    }
+
+    public void setDownloader(Downloader downloader) {
+        this.downloader = downloader;
+    }
+
+    public Boolean getStarted() {
+        return isStarted;
     }
 
     public static Comparator<Download> downloadNameComparator = new Comparator<Download>() {
@@ -223,12 +241,43 @@ public class Download implements Serializable{
         return makePrefix(bytesPerSecond) + "/S";
     }
 
-    public void pause(){
-        state = status.Paused;
+    public Time estimatedTimeRemaining() {
+        if (bytesPerSecond != 0) {
+            int remainingBytes = sizeInBytes - downloadedBytes;
+            int remainingSecs = remainingBytes / bytesPerSecond;
+            Time time = new Time(0,0,remainingSecs);
+            return time;
+        }
+        return null;
     }
+
 
     public void resume(){
         state = status.Downloading;
+        DownloadManager.updateUI();
+        downloader.resume();
+    }
+
+    public void start() {
+        state = status.Downloading;
+        isStarted = true;
+        DownloadManager.updateUI();
+        downloader.start();
+        //DownloadManager.getService().submit(downloader);
+        //DownloadManager.getService().execute(downloader);
+        //downloader.run();
+    }
+
+    public void pause(){
+        state = status.Paused;
+        DownloadManager.updateUI();
+        downloader.suspend();
+    }
+
+    public void pauseInQueue() {
+        state = status.InQueue;
+        DownloadManager.updateUI();
+        downloader.suspend();
     }
 
     public void cancel() {
@@ -244,11 +293,40 @@ public class Download implements Serializable{
 
     public void finish() {
         state = status.Finished;
+        DownloadEntry entry = new DownloadEntry(this);
+        if (DownloadManager.getQueue().getModel().contains(entry)) {
+            int index = DownloadManager.getQueue().getModel().indexOf(entry);
+            if (index < DownloadManager.getQueue().getModel().size() - 1) {
+                DownloadManager.getQueue().getModel().getElementAt(index + 1).getDownload().setState(status.Downloading);
+                DownloadManager.getQueueService().execute(DownloadManager.getQueue().getModel().getElementAt(index + 1).getDownload().getDownloader());
+            }
+            else {
+                JOptionPane.showMessageDialog(GUI.getFrame(), "Queue finished", "Message", 1);
+            }
+            DownloadManager.getQueue().getModel().removeElementAt(0);
+
+        }
+        finishTime = Calendar.getInstance().getTime();
+        DownloadManager.getCompleted().addDownloadToList(this);
+        DownloadManager.getProccessing().getModel().removeElement(new DownloadEntry(this));
+        DownloadManager.updateUI();
     }
+
 
     public void openFile() {
         try {
-            Desktop.getDesktop().open(new File(getSaveTo() + getName()));
+            String format = fileFormat();
+            if (getName().contains(format)) {
+                format = "";
+            }
+            String path = getSaveTo() + File.separator + getName() + format;
+            path.replaceAll("//","/");
+            path.replaceAll("..",".");
+            System.out.println(path);
+
+            System.out.println(path);
+            File file = new File(path);
+            Desktop.getDesktop().open(file);
         } catch (IOException e1) {
         }
     }
@@ -258,5 +336,26 @@ public class Download implements Serializable{
             Desktop.getDesktop().open(new File(getSaveTo()));
         } catch (IOException e1) {
         }
+    }
+
+    public static String validName(String name) {
+
+        name = name.replaceAll("\\?", "_");
+        name = name.replaceAll(">", "_");
+        name = name.replaceAll("<", "_");
+        name = name.replaceAll(":", "_");
+        name = name.replaceAll("/", "_");
+        name = name.replaceAll("\\*", "_");
+        name = name.replaceAll("\"", "_");
+        name = name.replaceAll("\\\\", "_");
+        name = name.replaceAll("\\|", "_");
+        return name;
+
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Download dl = (Download)obj;
+        return (name.equals(dl.name) && sizeInBytes.equals(dl.sizeInBytes) && link.equals(dl.link) && creationTime.equals(dl.creationTime) && downloadedBytes.equals(dl.downloadedBytes));
     }
 }
