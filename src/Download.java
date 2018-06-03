@@ -9,6 +9,7 @@ import java.util.*;
 
 /**
  * Created by 9631815 on 5/12/2018.
+ * This class implements a download in download manager
  */
 public class Download implements Serializable{
 
@@ -16,6 +17,9 @@ public class Download implements Serializable{
         Downloading, Paused, Cancelled, Finished, InQueue;
     }
 
+    /**
+     * instances of download class
+     */
     private transient Downloader downloader;
     private String name;
     private String link;
@@ -28,6 +32,11 @@ public class Download implements Serializable{
     private String saveTo;
     private Boolean isStarted;
 
+    /**
+     * Construcor for download class
+     * @param name
+     * @param link
+     */
 
     public Download(String name, String link){
         sizeInBytes = 0;
@@ -42,18 +51,34 @@ public class Download implements Serializable{
         isStarted = false;
     }
 
+
+    /**
+     * getter method for downloader field
+     * @return
+     */
     public Downloader getDownloader() {
         return downloader;
     }
 
+    /**
+     * setter method for downloaded field
+     * @param downloader
+     */
     public void setDownloader(Downloader downloader) {
         this.downloader = downloader;
     }
 
+    /**
+     * getter method for started field
+     * @return
+     */
     public Boolean getStarted() {
         return isStarted;
     }
 
+    /**
+     * comparator for download class
+     */
     public static Comparator<Download> downloadNameComparator = new Comparator<Download>() {
         @Override
         public int compare(Download o1, Download o2) {
@@ -63,6 +88,9 @@ public class Download implements Serializable{
         }
     };
 
+    /**
+     * comparator for download class
+     */
     public static Comparator<Download> downloadSizeComparator = new Comparator<Download>() {
         @Override
         public int compare(Download o1, Download o2) {
@@ -71,6 +99,9 @@ public class Download implements Serializable{
         }
     };
 
+    /**
+     * comparator for download class
+     */
     public static Comparator<Download> creationTimeComparator = new Comparator<Download>() {
         @Override
         public int compare(Download o1, Download o2) {
@@ -84,6 +115,9 @@ public class Download implements Serializable{
         }
     };
 
+    /**
+     * comparator for download class
+     */
     public static Comparator<Download> downloadedPercentageComparator = new Comparator<Download>() {
         @Override
         public int compare(Download o1, Download o2) {
@@ -91,6 +125,9 @@ public class Download implements Serializable{
         }
     };
 
+    /**
+     * comparator for download class
+     */
     public static Comparator<Download> downloadedAmountComparator = new Comparator<Download>() {
         @Override
         public int compare(Download o1, Download o2) {
@@ -98,6 +135,9 @@ public class Download implements Serializable{
         }
     };
 
+    /**
+     * This method sorts downloads
+     */
     public static void sortDownloads(ArrayList<Download> downloads, Comparator<Download> firstPriority, boolean firstIsAscending,
                               Comparator<Download> secondPriority, boolean secondIsAscending) {
         Collections.sort(downloads, firstPriority);
@@ -120,6 +160,11 @@ public class Download implements Serializable{
         }
     }
 
+    /**
+     * This method returns proper comparator given a string
+     * @param item
+     * @return
+     */
     public static Comparator getComparator(String item) {
         if (item.equals("By name")) {
             return downloadNameComparator;
@@ -139,78 +184,122 @@ public class Download implements Serializable{
         return null;
     }
 
+    /**
+     * getter method for name field
+     * @return
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * getter method for link field
+     * @return
+     */
     public String getLink() {
         return link;
     }
 
+    /**
+     * getter method for size field
+     * @return
+     */
     public Integer getSizeInBytes() {
         return sizeInBytes;
     }
 
+    /**
+     * getter method for downloaded bytes field
+     * @return
+     */
     public Integer getDownloadedBytes() {
         return downloadedBytes;
     }
 
-    public int getBytesPerSecond() {
-        return bytesPerSecond;
-    }
-
+    /**
+     * getter method for state field
+     * @return
+     */
     public status getState() {
         return state;
     }
 
+    /**
+     * getter method for creation field
+     * @return
+     */
     public Date getCreationTime() {
         return creationTime;
     }
 
+    /**
+     * getter method for finish time field
+     * @return
+     */
     public Date getFinishTime() {
         return finishTime;
     }
 
+    /**
+     * getter method for saveto field
+     * @return
+     */
     public String getSaveTo() {
         return saveTo;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
+    /**
+     * setter method for link field
+     * @param link
+     */
     public void setLink(String link) {
         this.link = link;
     }
 
+    /**
+     * setter method for bytesPerSecond field
+     * @param bytesPerSecond
+     */
     public void setBytesPerSecond(int bytesPerSecond) {
         this.bytesPerSecond = bytesPerSecond;
     }
 
+    /**
+     * setter method for size field
+     * @param sizeInBytes
+     */
     public void setSizeInBytes(int sizeInBytes) {
         this.sizeInBytes = sizeInBytes;
     }
 
+    /**
+     * setter method for downloaded bytes field
+     * @param downloadedBytes
+     */
     public void setDownloadedBytes(int downloadedBytes) {
         this.downloadedBytes = downloadedBytes;
     }
 
+    /**
+     * setter method for state field
+     * @param state
+     */
     public void setState(status state) {
         this.state = state;
     }
 
-    public void setSaveTo(String saveTo) {
-        this.saveTo = saveTo;
-    }
-
+    /**
+     * setter method for creation time field
+     * @param creationTime
+     */
     public void setCreationTime(Date creationTime) {
         this.creationTime = creationTime;
     }
 
-    public void setFinishTime(Date finishTime) {
-        this.finishTime = finishTime;
-    }
-
+    /**
+     * getter method for percentage field
+     * @return
+     */
     public float getDownloadedPercentage(){
         if (sizeInBytes != 0){
             return (float)(int)(((float) downloadedBytes / (float) sizeInBytes) * 10000)/100;
@@ -218,6 +307,11 @@ public class Download implements Serializable{
         return 0;
     }
 
+    /**
+     * This method makes proper postfix for download size
+     * @param bytes
+     * @return
+     */
     public static String makePrefix(int bytes) {
         if (bytes >= 0 && bytes < 1024){
             return bytes + "B";
@@ -233,14 +327,26 @@ public class Download implements Serializable{
         }
     }
 
+    /**
+     * This method returns a string representing progression of download
+     * @return
+     */
     public String getProgress(){
         return makePrefix(downloadedBytes) + " / " + makePrefix(sizeInBytes);
     }
 
+    /**
+     * This method returns speed of download
+     * @return
+     */
     public String getSpeed() {
         return makePrefix(bytesPerSecond) + "/S";
     }
 
+    /**
+     * This method estimates remaining time to finish
+     * @return
+     */
     public Time estimatedTimeRemaining() {
         if (bytesPerSecond != 0) {
             int remainingBytes = sizeInBytes - downloadedBytes;
@@ -252,12 +358,18 @@ public class Download implements Serializable{
     }
 
 
+    /**
+     * this method resumes a download
+     */
     public void resume(){
         state = status.Downloading;
         DownloadManager.updateUI();
         downloader.resume();
     }
 
+    /**
+     * this method starts a download for the first time
+     */
     public void start() {
         state = status.Downloading;
         isStarted = true;
@@ -268,12 +380,18 @@ public class Download implements Serializable{
         //downloader.run();
     }
 
+    /**
+     * this method pauses a download
+     */
     public void pause(){
         state = status.Paused;
         DownloadManager.updateUI();
         downloader.suspend();
     }
 
+    /**
+     * this method pauses the queue
+     */
     public void pauseInQueue() {
         state = status.InQueue;
         DownloadManager.updateUI();
@@ -281,9 +399,14 @@ public class Download implements Serializable{
     }
 
     public void cancel() {
+        pause();
         state = status.Cancelled;
     }
 
+    /**
+     * This method determines file format
+     * @return
+     */
     public String fileFormat() {
         if (! link.contains(".") || link.lastIndexOf('.') == link.length()-1){
             return "file";
@@ -291,6 +414,9 @@ public class Download implements Serializable{
         return link.substring(link.lastIndexOf('.'), link.length());
     }
 
+    /**
+     * This method finishes a downlaod
+     */
     public void finish() {
         state = status.Finished;
         DownloadEntry entry = new DownloadEntry(this);
@@ -313,6 +439,9 @@ public class Download implements Serializable{
     }
 
 
+    /**
+     * This method opens the file after the file is downloaded
+     */
     public void openFile() {
         try {
             String format = fileFormat();
@@ -331,6 +460,9 @@ public class Download implements Serializable{
         }
     }
 
+    /**
+     * This method opens the folder of download
+     */
     public void openFolder() {
         try {
             Desktop.getDesktop().open(new File(getSaveTo()));
@@ -338,6 +470,11 @@ public class Download implements Serializable{
         }
     }
 
+    /**
+     * This method gives a name and returns a valid name to be saved
+     * @param name
+     * @return
+     */
     public static String validName(String name) {
 
         name = name.replaceAll("\\?", "_");
@@ -353,6 +490,11 @@ public class Download implements Serializable{
 
     }
 
+    /**
+     * override of equals method
+     * @param obj
+     * @return
+     */
     @Override
     public boolean equals(Object obj) {
         Download dl = (Download)obj;

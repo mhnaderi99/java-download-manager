@@ -1,10 +1,18 @@
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * This class serializes user data when app is being closed
+ */
 public class SerializationHandler {
 
 
-
+    /**
+     * This method is a general method for loading data
+     * @param path
+     * @param <T>
+     * @return
+     */
     private static <T>  ArrayList<T> load(String path) {
 
         try {
@@ -21,6 +29,12 @@ public class SerializationHandler {
         return null;
     }
 
+    /**
+     * This method is a general method for saving data
+     * @param path
+     * @param list
+     * @param <T>
+     */
     private static <T> void save(String path, ArrayList<T> list) {
 
         FileOutputStream fos = null;
@@ -36,6 +50,10 @@ public class SerializationHandler {
 
     }
 
+    /**
+     * This method loads settings
+     * @return
+     */
     public static Settings loadSettings() {
         Settings settings = new Settings();
         ArrayList list = load("settings.jdm");
@@ -45,12 +63,19 @@ public class SerializationHandler {
         return settings;
     }
 
+    /**
+     * This method saves settings
+     */
     public static void saveSettings() {
         ArrayList list = new ArrayList();
         list.add(DownloadManager.getSettings());
         save("settings.jdm", list);
     }
 
+    /**
+     * This method loads processing downloads
+     * @return
+     */
     public static DownloadsList loadProcessing() {
         DownloadsList processing = new DownloadsList(DownloadsList.state.Processing);
         ArrayList list = load("list.jdm");
@@ -60,6 +85,9 @@ public class SerializationHandler {
         return processing;
     }
 
+    /**
+     * This method saves processing downloads
+     */
     public static void saveProcessing() {
         ArrayList list = new ArrayList();
         DownloadsList downloadsList = DownloadManager.getProccessing();
@@ -68,6 +96,10 @@ public class SerializationHandler {
         save("list.jdm", list);
     }
 
+    /**
+     * This method loads queue
+     * @return
+     */
     public static DownloadsList loadQueue() {
         DownloadsList queue = new DownloadsList(DownloadsList.state.Queue);
         ArrayList list = load("queue.jdm");
@@ -78,6 +110,9 @@ public class SerializationHandler {
         return queue;
     }
 
+    /**
+     * This method saves queue
+     */
     public static void saveQueue() {
         ArrayList list = new ArrayList();
         DownloadsList downloadsList = DownloadManager.getQueue();
@@ -85,6 +120,10 @@ public class SerializationHandler {
         save("queue.jdm", list);
     }
 
+    /**
+     * This method loads completed downloads
+     * @return
+     */
     public static DownloadsList loadCompleted() {
         DownloadsList completed = new DownloadsList(DownloadsList.state.Completed);
         ArrayList list = load("completed.jdm");
@@ -95,6 +134,9 @@ public class SerializationHandler {
         return completed;
     }
 
+    /**
+     * This method saves completed downloads
+     */
     public static void saveCompleted() {
         ArrayList list = new ArrayList();
         DownloadsList downloadsList = DownloadManager.getCompleted();
@@ -102,6 +144,10 @@ public class SerializationHandler {
         save("completed.jdm", list);
     }
 
+    /**
+     * This method loads removed downloads
+     * @return
+     */
     public static DownloadsList loadRemoved() {
         DownloadsList removed = new DownloadsList(DownloadsList.state.Removed);
         ArrayList list = load("removed.jdm");
@@ -112,10 +158,30 @@ public class SerializationHandler {
         return removed;
     }
 
+    /**
+     * This method saves removed downloads
+     */
     public static void saveRemoved() {
         ArrayList list = new ArrayList();
         DownloadsList downloadsList = DownloadManager.getRemoved();
         list.add(downloadsList);
         save("removed.jdm", list);
+    }
+
+    public static ArrayList<String> loadFilters() {
+        ArrayList<String> filters = new ArrayList<String>();
+        ArrayList list = load("filter.jdm");
+        System.out.println(list == null);
+        if (list != null) {
+            filters = (ArrayList<String>) list.get(0);
+        }
+        return filters;
+    }
+
+    public static void saveFilters() {
+        ArrayList list = new ArrayList();
+        ArrayList<String> filters = DownloadManager.getSettings().getFilteredSites();
+        list.add(filters);
+        save("filter.jdm", list);
     }
 }

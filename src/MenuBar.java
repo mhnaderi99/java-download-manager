@@ -3,10 +3,14 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 
 /**
+ * This class implements the menubar of the gui of download manager
  * Created by 9631815 on 5/12/2018.
  */
 public class MenuBar {
 
+    /**
+     * instances of menubar
+     */
     private static JMenuBar menuBar;
     JMenu download;
     JMenu help;
@@ -19,10 +23,16 @@ public class MenuBar {
     private JMenuItem exit;
     private JMenuItem about;
 
+    /**
+     * Constructor for menuBar class
+     */
     public MenuBar() {
         initiateMenuBar();
     }
 
+    /**
+     * This method initializes menubar
+     */
     private void initiateMenuItems(){
         download = new JMenu("Download");
         download.setMnemonic(KeyEvent.VK_D);
@@ -87,6 +97,9 @@ public class MenuBar {
         help.add(about);
     }
 
+    /**
+     * this method initializes menuBar
+     */
     private void initiateMenuBar(){
         initiateMenuItems();
         menuBar = new JMenuBar();
@@ -94,12 +107,11 @@ public class MenuBar {
         menuBar.add(help);
     }
 
-    public static void setLookAndFeel(String lookAndFeel) {
-        menuBar.invalidate();
-        menuBar.validate();
-        menuBar.repaint();
-    }
 
+    /**
+     * getter method for menubar field
+     * @return
+     */
     public JMenuBar getMenuBar() {
         return menuBar;
     }

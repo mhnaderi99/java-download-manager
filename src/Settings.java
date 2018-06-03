@@ -8,8 +8,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * This class implements settings of JDM
+ */
 public class Settings implements Serializable{
 
+    /**
+     * instances of settings
+     */
     private transient JFrame settingsFrame;
     private String lookAndFeel;
     private String saveToPath;
@@ -17,8 +23,11 @@ public class Settings implements Serializable{
     private Integer maximumSynchronicDownloads;
     private String[] lAndFs;
     private String[] lAndFNames;
-    private ArrayList<String> filteredSites;
+    private transient ArrayList<String> filteredSites;
 
+    /**
+     * Constructor for settings
+     */
     public Settings() {
         lAndFs = new String[] {UIManager.getSystemLookAndFeelClassName(), "javax.swing.plaf.nimbus.NimbusLookAndFeel", "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"};
         lAndFNames = new String[] {"System default", "Nimbus", "Windows classic"};
@@ -26,9 +35,13 @@ public class Settings implements Serializable{
         synchronicDownloadsLimited = false;
         lookAndFeel = lAndFs[0];
         saveToPath = System.getProperty("user.home") + "\\Desktop";
-        filteredSites = new ArrayList<String>();
+        filteredSites = SerializationHandler.loadFilters();
     }
 
+    /**
+     * This method makes settings frame
+     * @return
+     */
     public JFrame makeSettingsFrame() {
         settingsFrame = new JFrame("Settings");
         settingsFrame.setIconImage(new ImageIcon("src/icons/settings.png").getImage());
@@ -40,6 +53,10 @@ public class Settings implements Serializable{
         return settingsFrame;
     }
 
+    /**
+     * This method makes main panel of settings frame
+     * @return
+     */
     private JScrollPane makeMainPanel() {
         final int[] tempLimit = {maximumSynchronicDownloads};
         final String[] tempPath = {saveToPath};
@@ -303,27 +320,55 @@ public class Settings implements Serializable{
         return pane;
     }
 
+    /**
+     * geter method for saveToPath field
+     * @return
+     */
     public String getSaveToPath() {
         return saveToPath;
     }
 
+    /**
+     * getter method for MaximumSynchronicDownloads field
+     * @return
+     */
     public int getMaximumSynchronicDownloads() {
         return maximumSynchronicDownloads;
     }
 
+    /**
+     * getter method for lookAndFeel field
+     * @return
+     */
     public String getLookAndFeel() {
         return lookAndFeel;
     }
 
+    /**
+     * getter method for SynchronicDownloadsLimited field
+     * @return
+     */
     public boolean isSynchronicDownloadsLimited() {
         return synchronicDownloadsLimited;
     }
 
 
+    /**
+     * getter methhod for filtered sites
+     * @return
+     */
     public ArrayList<String> getFilteredSites() {
         return filteredSites;
     }
 
+    public void setFilteredSites(ArrayList<String> filteredSites) {
+        this.filteredSites = filteredSites;
+    }
+
+    /**
+     * override of tostring method
+     * @return
+     */
     @Override
     public String toString() {
         return synchronicDownloadsLimited + ", " + maximumSynchronicDownloads + ", " + saveToPath + ", " + lookAndFeel;

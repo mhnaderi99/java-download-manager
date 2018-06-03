@@ -16,10 +16,14 @@ import java.io.Serializable;
 import java.nio.file.InvalidPathException;
 
 /**
+ * This method is a graphical schema of download class
  * Created by 9631815 on 5/12/2018.
  */
 public class DownloadEntry implements Serializable{
 
+    /**
+     * instances of download entry
+     */
     private Download download;
     private transient JPanel panel;
     private transient JPanel iconPanel;
@@ -39,14 +43,27 @@ public class DownloadEntry implements Serializable{
 
     private transient JProgressBar progressBar;
 
+    /**
+     * Constructor for download entry class
+     * @param download
+     */
     public DownloadEntry(Download download) {
         this.download = download;
     }
 
+    /**
+     * getter method for download field
+     * @return
+     */
     public Download getDownload() {
         return download;
     }
 
+    /**
+     * getter method for panel field
+     * @param mode
+     * @return
+     */
     public JPanel getPanel(DownloadsList.state mode) {
 
         int sizeInBytes = download.getSizeInBytes();
@@ -115,10 +132,13 @@ public class DownloadEntry implements Serializable{
         catch (InvalidPathException e) {
             icon1 = new ImageIcon("src/icons/files/file.bin");
         }
-
         icon.setIcon(new ImageIcon(GUI.getScaledImage(icon2image(icon1), 30,30)));
-        writer.close();
-        file.delete();
+        try {
+            writer.close();
+            file.delete();
+        }
+        catch (NullPointerException e) {}
+
 
         progress = new JLabel(progressText);
         progress.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -257,11 +277,19 @@ public class DownloadEntry implements Serializable{
         return panel;
     }
 
+    /**
+     * override of tostring method
+     * @return
+     */
     @Override
     public String toString() {
         return download.getName() + ": " + download.getProgress();
     }
 
+    /**
+     * this method generates details frame of a download
+     * @return
+     */
     public JFrame makeDetailsFrame() {
 
         JFrame details = new JFrame();
@@ -362,6 +390,12 @@ public class DownloadEntry implements Serializable{
         return details;
     }
 
+    /**
+     * this method fixes size of a component
+     * @param c
+     * @param width
+     * @param height
+     */
     private void setFixedSize(Component c, int width, int height) {
         Dimension d = new Dimension(width, height);
         c.setMinimumSize(d);
@@ -369,6 +403,11 @@ public class DownloadEntry implements Serializable{
         c.setPreferredSize(d);
     }
 
+    /**
+     * this image converts an icon to image
+     * @param icon
+     * @return
+     */
     public static Image icon2image(Icon icon) {
         if (icon == null) {
             return null;
@@ -390,6 +429,11 @@ public class DownloadEntry implements Serializable{
         }
     }
 
+    /**
+     * override of equals method
+     * @param obj
+     * @return
+     */
     @Override
     public boolean equals(Object obj) {
         return (download.equals(((DownloadEntry)obj).getDownload()));

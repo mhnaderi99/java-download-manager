@@ -3,6 +3,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 
+/**
+ * This method is a an event handler for this project
+ */
 public class EventHandler implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {

@@ -7,14 +7,33 @@ import java.awt.event.MouseEvent;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * This class renders cell of downloadslist
+ */
 public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, Serializable {
 
+    /**
+     * mode of list
+     */
     private DownloadsList.state mode;
 
+    /**
+     * Constructor for the class
+     * @param mode
+     */
     public DownloadEntryRenderer(DownloadsList.state mode) {
         this.mode = mode;
     }
 
+    /**
+     * Override of getListCellRendererComponent method
+     * @param list
+     * @param value
+     * @param index
+     * @param isSelected
+     * @param cellHasFocus
+     * @return component
+     */
     @Override
     public Component getListCellRendererComponent(JList<? extends DownloadEntry> list, DownloadEntry value, int index, boolean isSelected, boolean cellHasFocus) {
 
@@ -30,6 +49,12 @@ public class DownloadEntryRenderer implements ListCellRenderer<DownloadEntry>, S
         return panel;
     }
 
+    /**
+     * This method gets a container and a color and paints all the components of the container
+     * @param container
+     * @param backColor
+     * @param foreColor
+     */
     public static void colorWholeContainer(Container container, Color backColor, Color foreColor) {
         container.setBackground(backColor);
         container.setForeground(foreColor);

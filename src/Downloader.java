@@ -3,13 +3,23 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * This class implements a thread which downloads a download
+ */
 public class Downloader extends Thread implements Serializable {
 
+    /**
+     * instances of downloader
+     */
     private static final int BUFFER_SIZE = 4096;
     private Download download;
     private FileOutputStream outputStream;
     private InputStream inputStream;
 
+    /**
+     * Constructor for downloader
+     * @param download
+     */
     public Downloader(Download download) {
         this.download = download;
 
@@ -39,6 +49,9 @@ public class Downloader extends Thread implements Serializable {
         };
     }
 
+    /**
+     * override of run method
+     */
     @Override
     public void run() {
         try {
@@ -47,14 +60,32 @@ public class Downloader extends Thread implements Serializable {
         catch (IOException e) { }
     }
 
-    public void downloadFile()
-            throws IOException {
+    /**
+     * This method downloads a file by connecting to the internet
+     * @throws IOException
+     */
+    public void downloadFile() throws IOException {
+
         String fileURL = download.getLink();
         String saveDir = download.getSaveTo();
         URL url = new URL(fileURL);
+
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
-
+        int counter = 0;
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            download.setLink(fileURL);
+        }
+        else {
+            while (counter < 10 && (responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_MOVED_TEMP)) {
+                httpConn = (HttpURLConnection) new URL(httpConn.getHeaderField("Location")).openConnection();
+                download.setLink(httpConn.getHeaderField("Location"));
+                responseCode = httpConn.getResponseCode();
+                counter++;
+                System.out.println(counter);
+            }
+        }
+        System.out.println(counter);
         // always check HTTP response code first
         if (responseCode == HttpURLConnection.HTTP_OK) {
             String fileName = download.getName();
@@ -65,9 +96,13 @@ public class Downloader extends Thread implements Serializable {
             System.out.println("Content-Type = " + contentType);
             System.out.println("Content-Length = " + contentLength);
             System.out.println("fileName = " + fileName);
-            
+            System.out.println(httpConn.getHeaderField("Location"));
 
             // opens input stream from the HTTP connection
+            URL test = new URL(download.getLink());
+            fileName = (Download.validName(test.getFile().substring(Math.max(test.getFile().lastIndexOf("/"), test.getFile().lastIndexOf("=")) + 1, test.getFile().length())));
+            //download.setName(fileName);
+
             inputStream = httpConn.getInputStream();
             String saveFilePath = saveDir + File.separator + fileName;
             if (! fileName.contains(download.fileFormat())) {

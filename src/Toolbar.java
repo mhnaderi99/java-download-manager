@@ -6,10 +6,14 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
+ * This class implements toolbar of JDM
  * Created by 9631815 on 5/12/2018.
  */
 public class Toolbar {
 
+    /**
+     * instances of Toolbar
+     */
     private JToolBar toolBar;
 
     private JButton addNewDownload;
@@ -23,10 +27,17 @@ public class Toolbar {
     private JLabel searchButton;
 
 
+    /**
+     * Constructor for Toolbar
+     */
     public Toolbar() {
         initiateToolbar();
     }
 
+    /**
+     * This method sets buttons enabled or disabled according to state of app
+     * @param mode
+     */
     public void setEnabledButtons(int mode) {
         if (mode == -2) {
             addNewDownload.setEnabled(true);
@@ -83,6 +94,9 @@ public class Toolbar {
 
     }
 
+    /**
+     * This method initiate buttons of toolbar
+     */
     private void initiateButtons() {
 
         addNewDownload = new JButton("");
@@ -232,6 +246,9 @@ public class Toolbar {
         searchButton.setOpaque(true);
     }
 
+    /**
+     * This private class handles mouseMove on the toolbar
+     */
     private class mouseHandler implements MouseListener {
 
         @Override
@@ -268,6 +285,9 @@ public class Toolbar {
         }
     }
 
+    /**
+     * This method initiates toolbar
+     */
     private void initiateToolbar() {
 
         initiateButtons();
@@ -307,6 +327,10 @@ public class Toolbar {
             toolBar.add(searchPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * getter method for toolbar
+     * @return
+     */
     public JToolBar getToolBar() {
         return toolBar;
     }

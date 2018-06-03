@@ -5,19 +5,23 @@ import javax.swing.UIManager;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * This class implements a download manager
+ * @author mhnad
+ * @version 1.0
+ * @since 1/6/2018
+ */
 public class DownloadManager implements Serializable {
 
+    /**
+     * instances of DownloadManager class
+     */
     private static GUI gui;
     private static Settings settings;
     private static DownloadsList completed, proccessing, removed, queue;
@@ -27,10 +31,14 @@ public class DownloadManager implements Serializable {
 
     public static final transient int INF = Integer.MAX_VALUE;
 
+    /**
+     * Constructor for this class
+     */
     public DownloadManager() {
         //service = Executors.newCachedThreadPool();
         queueService = Executors.newCachedThreadPool();
         settings = SerializationHandler.loadSettings();
+        settings.setFilteredSites(SerializationHandler.loadFilters());
         setLookAndFeel(settings.getLookAndFeel());
         completed = SerializationHandler.loadCompleted();
         proccessing = SerializationHandler.loadProcessing();
@@ -43,38 +51,57 @@ public class DownloadManager implements Serializable {
         gui.showGUI();
     }
 
+    /**
+     * getter method for state field
+     * @return
+     */
     public static DownloadsList.state getState() {
         return state;
     }
 
-    public static GUI getGui() {
-        return gui;
-    }
-
-    public static void setGui(GUI gui) {
-        DownloadManager.gui = gui;
-    }
-
+    /**
+     * getter method for proccessing field
+     * @return
+     */
     public static DownloadsList getProccessing() {
         return proccessing;
     }
 
+    /**
+     * getter method for completed field
+     * @return
+     */
     public static DownloadsList getCompleted() {
         return completed;
     }
 
+    /**
+     * getter method for settings field
+     * @return
+     */
     public static Settings getSettings() {
         return settings;
     }
 
+    /**
+     * getter method for queue field
+     * @return
+     */
     public static DownloadsList getQueue() {
         return queue;
     }
 
+    /**
+     * getter method for removed field
+     * @return
+     */
     public static DownloadsList getRemoved() {
         return removed;
     }
 
+    /**
+     * This method calls update method in GUI class
+     */
     public static void updateUI() {
         gui.update();
     }
@@ -83,6 +110,9 @@ public class DownloadManager implements Serializable {
 //        return service;
 //    }
 
+    /**
+     * This method pauses selected downloads
+     */
     public static void pauseDownloads() {
         int[] indices = GUI.getList().getSelectedIndices();
         for (int index : indices) {
@@ -92,6 +122,9 @@ public class DownloadManager implements Serializable {
         updateUI();
     }
 
+    /**
+     * This method resumes selected downloads
+     */
     public static void resumeDownloads() {
         boolean flag = false;
         int[] indices = GUI.getList().getDownloadEntries().getSelectedIndices();
@@ -117,7 +150,11 @@ public class DownloadManager implements Serializable {
         }
     }
 
+    /**
+     * This method removes selected downloads
+     */
     public static void removeDownloads() {
+
         int value = JOptionPane.showConfirmDialog(GUI.getFrame(), "Are you sure you want to delete?", "Warning", 0, 0);
         if (value != 0) {
             return;
@@ -126,6 +163,7 @@ public class DownloadManager implements Serializable {
         ArrayList trashIndices = new ArrayList();
 
         for (int index : indices) {
+            GUI.getList().getModel().getElementAt(index).getDownload().pause();
             trashIndices.add(index);
         }
         DefaultListModel model = new DefaultListModel();
@@ -140,24 +178,33 @@ public class DownloadManager implements Serializable {
         GUI.getList().updateUI();
     }
 
+    /**
+     * This method cancels selected downloads
+     */
     public static void cancelDownloads() {
         int[] indices = GUI.getList().getSelectedIndices();
         for (int index : indices) {
-            GUI.getList().getModel().getElementAt(index).getDownload().setState(Download.status.Cancelled);
+            GUI.getList().getModel().getElementAt(index).getDownload().cancel();
         }
         getListByState().setModel(GUI.getList().getModel());
         updateUI();
     }
 
+    /**
+     * this method pauses all downloads
+     */
     public static void pauseAllDownloads() {
         for (int i = 0; i < GUI.getList().getModel().size(); i++) {
             DownloadEntry entry = GUI.getList().getModel().getElementAt(i);
-            entry.getDownload().setState(Download.status.Paused);
+            entry.getDownload().pause();
         }
         getListByState().setModel(GUI.getList().getModel());
         updateUI();
     }
 
+    /**
+     * This method pauses queue
+     */
     public static void pauseQueue() {
         queue.setRunning(false);
         System.out.println(queue.getModel().size());
@@ -166,6 +213,9 @@ public class DownloadManager implements Serializable {
 
     }
 
+    /**
+     * This method starts the queue
+     */
     public static void startQueue() {
         if (queue.getModel().getElementAt(0).getDownload().getStarted()){
             queue.getModel().getElementAt(0).getDownload().resume();
@@ -177,10 +227,18 @@ public class DownloadManager implements Serializable {
         //queueService.shutdown();
     }
 
+    /**
+     * setter method for state field
+     * @param state
+     */
     public static void setState(DownloadsList.state state) {
         DownloadManager.state = state;
     }
 
+    /**
+     * This method returns DownloadList given a state
+     * @return
+     */
     public static DownloadsList getListByState() {
         if (state == DownloadsList.state.Processing) {return proccessing;}
         if (state == DownloadsList.state.Completed) {return completed;}
@@ -189,6 +247,10 @@ public class DownloadManager implements Serializable {
         return null;
     }
 
+    /**
+     * This method pauses some downloads
+     * @param number
+     */
     public static void pauseSomeDownloads(int number) {
         int l = proccessing.getModel().size();
         for (int i = l - 1; i >= l - number; i--) {
@@ -197,6 +259,9 @@ public class DownloadManager implements Serializable {
         updateUI();
     }
 
+    /**
+     * This method resumes all downloads
+     */
     public static void resumeAllDownloads() {
         boolean flag = false;
         if (proccessing.getModel().size() > settings.getMaximumSynchronicDownloads() && settings.isSynchronicDownloadsLimited()) {
@@ -213,18 +278,29 @@ public class DownloadManager implements Serializable {
         }
     }
 
+    /**
+     * This method cancells all downloads
+     */
     public static void cancelAllDownloads() {
         for (int i = 0; i < proccessing.getModel().size(); i++) {
             DownloadEntry entry = proccessing.getModel().get(i);
-            entry.getDownload().setState(Download.status.Cancelled);
+            entry.getDownload().cancel();
         }
         updateUI();
     }
 
+    /**
+     * getter method for queue service field
+     * @return
+     */
     public static ExecutorService getQueueService() {
         return queueService;
     }
 
+    /**
+     * This method returns number of active downloads
+     * @return
+     */
     public static int getInProgressDownloads() {
         int count = 0;
         for (int i = 0; i < proccessing.getModel().size(); i++) {
@@ -243,6 +319,10 @@ public class DownloadManager implements Serializable {
         return count;
     }
 
+    /**
+     * setter method for look and feel
+     * @param lookAndFeel
+     */
     public static void setLookAndFeel(String lookAndFeel) {
         try {
             UIManager.setLookAndFeel(lookAndFeel);
@@ -250,6 +330,11 @@ public class DownloadManager implements Serializable {
         }
     }
 
+    /**
+     * This method searches in the downloads and returns results list
+     * @param text
+     * @return
+     */
     public static DownloadsList searchResults(String text) {
         DefaultListModel model = new DefaultListModel();
         for (int i = 0; i < getListByState().getModel().size(); i++) {
@@ -265,15 +350,22 @@ public class DownloadManager implements Serializable {
         return searchResults;
     }
 
+    /**
+     * This method exits from the app and saves the data
+     */
     public static void exit() {
         SerializationHandler.saveSettings();
         SerializationHandler.saveProcessing();
         SerializationHandler.saveQueue();
         SerializationHandler.saveCompleted();
         SerializationHandler.saveRemoved();
+        SerializationHandler.saveFilters();
         System.exit(0);
     }
 
+    /**
+     * This method is called when the app is reopened
+     */
     public static void reopen() {
         for (int i = 0; i < proccessing.getModel().size(); i++) {
             proccessing.getModel().getElementAt(i).getDownload().setDownloader(new Downloader(proccessing.getModel().getElementAt(i).getDownload()));
@@ -284,15 +376,18 @@ public class DownloadManager implements Serializable {
     }
 
 
+    /**
+     * This method exports user data and compresses it
+     */
     public static void export() {
         new File("export.zip").delete();
         ZipOutputStream zos = null;
         File zip = new File("export.zip");
-        String[] names = {"settings.jdm","list.jdm","completed.jdm","queue.jdm","removed.jdm"};
+        String[] names = {"settings.jdm","list.jdm","completed.jdm","queue.jdm","removed.jdm", "filter.jdm"};
         try {
             zos = new ZipOutputStream(new FileOutputStream(zip, true));
 
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 6; i++) {
                 String name = names[i];
                 File file = new File(name);
                 ZipEntry entry = new ZipEntry(name);
@@ -330,7 +425,12 @@ public class DownloadManager implements Serializable {
     }
 
 
-
+    /**
+     * This method gets two URLs and checks if one of them is sub domain of the other
+     * @param a
+     * @param b
+     * @return
+     */
     public static boolean isOneSubdomainOfTheOther(String a, String b) {
 
         try {
